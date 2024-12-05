@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
+from .models import Pessoa
+
 # Create your views here.
-def home(request):
-    return render(request,"MyPet/home.html")
+def index(request):
+    return render(request,"MyPet/index.html")

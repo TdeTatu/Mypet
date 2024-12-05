@@ -44,6 +44,23 @@ class Pessoa(models.Model):
     telefone = models.CharField(max_length=11, null=False, blank=False)
     senha = models.CharField(max_length=20, null=False, blank=False)
     email = models.CharField(max_length=50, null=False, blank=False)
+    fk_genero = models.ForeignKey("Genero", on_delete=models.CASCADE)
+    fk_faixa_salarial = models.ForeignKey("Faixa_Salarial", on_delete=models.CASCADE)
+    fk_tipo_residencia = models.ForeignKey("Tipo_Residencia", on_delete=models.CASCADE)
+
+    #Propertys chaves estrangeiras da pessoa
+
+    @property
+    def genero(self):
+        return self.fk_genero.idGenero
+    
+    @property
+    def faixa_salarial(self):
+        return self.fk_faixa_salarial.idFaixa_salarial
+    
+    @property
+    def tipo_residencia(self):
+        return self.fk_tipo_residencia.idTipo_Residencia
 
 class Faixa_Salarial(models.Model):
     idFaixa_salarial = models.IntegerField(null=False, blank=False)
@@ -52,6 +69,10 @@ class Faixa_Salarial(models.Model):
 class Genero(models.Model):
     idGenero = models.IntegerField(null=False,blank=False)
     genero = models.CharField(null=False, blank=False, max_length=6)
+
+class Tipo_Residencia(models.Model):
+    idTipo_Residencia = models.IntegerField(null=False, blank=False)
+    Tipo_Residencia = models.CharField(null=False,blank=False,max_length=14)
 
 #///////////////////////
 
@@ -84,5 +105,6 @@ class Adocao(models.Model):
     dt_adocao = models.DateField(null=False, blank=False)
 
 #///////////////////////
+
 
 
