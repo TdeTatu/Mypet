@@ -45,7 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'MyPet.apps.MypetConfig',
-]
+    'bootstrap4',
+    'stdimage',
+    ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -55,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleWare',
 ]
 
 ROOT_URLCONF = 'setup.urls'
@@ -82,9 +86,15 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': config(
-        "DATABASE_URL", 
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}', cast=db_url)
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'BancoPet',
+        'USER': 'X',
+        'PASSWORD': 'Y',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+
 }
 
 
@@ -112,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'America/Fortaleza'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
