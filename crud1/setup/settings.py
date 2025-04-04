@@ -89,8 +89,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'BancoPet',
-        'USER': 'X',
-        'PASSWORD': 'Y',
+        'USER': 'UserPet',
+        'PASSWORD': 'P3TL3P3TR3P3T',
         'HOST': 'localhost',
         'PORT': '3306',
     }
