@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Little Pet - Acompanhamento</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Botão de Voltar -->
+        <button class="back-button" onclick="window.location.href='meuspets.html'">← Voltar</button>
+        
+        <h2>Acompanhamento de Pet</h2>
+        
+        <!-- Seleção do PET -->
+        <label for="pets">Escolha um Pet para acompanhar:</label>
+        <select id="pets" onchange="exibirInformacoesPet()">
+            <option value="">Selecione um pet</option>
+        </select>
+        
+        <div id="informacoes-pet" style="display: none;">
+            <h3>Informações do Pet</h3>
+            <div id="foto-pet"></div>
+            <p><strong>Nome:</strong> <span id="nome-pet"></span></p>
+            <p><strong>Idade:</strong> <span id="idade-pet"></span> anos</p>
+            <p><strong>Cor:</strong> <span id="cor-pet"></span></p>
+            <p><strong>Tamanho:</strong> <span id="tamanho-pet"></span></p>
+            
+            <!-- Estado de Saúde -->
+            <p><strong>Estado de Saúde:</strong> <span id="saude-pet"></span></p>
+            <textarea id="estado-saude-input" placeholder="Atualize o estado de saúde..." rows="3" style="width: 100%;" oninput="atualizarEstadoSaude()"></textarea>
+        </div>
+    </div>
+
+    <script>
+        // Carregar lista de pets
+        function carregarPets() {
+            let pets = JSON.parse(localStorage.getItem('pets')) || [];
+            let select = document.getElementById('pets');
+
+            pets.forEach((pet, index) => {
+                let option = document.createElement('option');
+                option.value = index;
+                option.textContent = pet.nome;
+                select.appendChild(option);
+            });
+        }
+
+        // Exibir informações do pet
+        function exibirInformacoesPet() {
+            let pets = JSON.parse(localStorage.getItem('pets')) || [];
+            let petIndex = document.getElementById('pets').value;
+            let informacoesDiv = document.getElementById('informacoes-pet');
+
+            if (petIndex !== "") {
+                let pet = pets[petIndex];
+
+                document.getElementById('nome-pet').textContent = pet.nome;
+                document.getElementById('idade-pet').textContent = pet.idade;
+                document.getElementById('cor-pet').textContent = pet.cor;
+                document.getElementById('tamanho-pet').textContent = pet.tamanho;
+                document.getElementById('saude-pet').textContent = pet.estadoSaude || 'Não informado';
+
+                // Exibir foto do pet
+                let fotoDiv = document.getElementById('foto-pet');
+                fotoDiv.innerHTML = `<img src="${pet.foto}" alt="Foto do pet" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">`;
+
+                // Exibir informações
+                informacoesDiv.style.display = 'block';
+            } else {
+                informacoesDiv.style.display = 'none';
+            }
+        }
+
+        // Atualizar estado de saúde
+        function atualizarEstadoSaude() {
+            let pets = JSON.parse(localStorage.getItem('pets')) || [];
+            let petIndex = document.getElementById('pets').value;
+
+            if (petIndex !== "") {
+                let pet = pets[petIndex];
+                let novoEstadoSaude = document.getElementById('estado-saude-input').value;
+
+                pet.estadoSaude = novoEstadoSaude; // Atualiza o estado de saúde do pet
+                localStorage.setItem('pets', JSON.stringify(pets)); // Salva as informações atualizadas no localStorage
+
+                // Atualiza a exibição do estado de saúde
+                document.getElementById('saude-pet').textContent = novoEstadoSaude;
+            }
+        }
+
+        // Carregar pets na inicialização
+        window.onload = carregarPets;
+    </script>
+</body>
+</html>

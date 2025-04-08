@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Little Pet - Meus Pets</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="back-button" onclick="window.location.href='telaprincipal.html'">← Voltar</button>
+            <h1>Meus Pets</h1>
+        </header>
+
+        <div id="lista-pets">
+            <!-- Lista de Pets -->
+        </div>
+
+        <button onclick="window.location.href='cadastro_pet.html'">Cadastrar Novo Pet</button>
+    </div>
+
+    <script>
+        function carregarPets() {
+            let pets = JSON.parse(localStorage.getItem('pets')) || [];
+            let listaPetsDiv = document.getElementById('lista-pets');
+            listaPetsDiv.innerHTML = '';
+
+            pets.forEach((pet, index) => {
+                let petDiv = document.createElement('div');
+                petDiv.classList.add('pet');
+                petDiv.innerHTML = `
+                    <img src="${pet.foto}" alt="${pet.nome}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
+                    <h3>${pet.nome}</h3>
+                    <button onclick="window.location.href='acompanhamento.html?petIndex=${index}'">Acompanhar</button>
+                `;
+                listaPetsDiv.appendChild(petDiv);
+            });
+        }
+
+        window.onload = carregarPets;
+    </script>
+</body>
+</html>

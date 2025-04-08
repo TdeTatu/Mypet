@@ -1,18 +1,17 @@
 
 from django.contrib import admin
 from django.urls import path, include
-from django.conf.urls import handler404, handler500
-from MyPet.views import index, cadastro, telaprincipal, meuspets, acompanhamento
+from MyPet.views import index, cadastro, cadastro_pet, telaprincipal, meuspets, acompanhamento
 
 
 urlpatterns = [
     path('ControleSupremo/', admin.site.urls),
+    path('', include('MyPet.urls')),
     path('', index, name= 'index'),
-    path('cadastro', cadastro),
-    path('telaprincipal', telaprincipal),
-    path('meuspets', meuspets),
-    path('acompanhamento', acompanhamento),
+    path('cadastro/', cadastro, name= 'cadastro'),
+    path('cadastro_pet/', cadastro_pet, name= 'cadastro_pet'),
+    path('telaprincipal/', telaprincipal, name= 'telaprincipal'),
+    path('meuspets/', meuspets, name= 'meuspets'),
+    path('acompanhamento/', acompanhamento, name= 'acompanhamento')
 ]
 
-handler404 = views.error404
-handler500 = views.error500

@@ -58,7 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleWare',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'setup.urls'
@@ -66,7 +66,7 @@ ROOT_URLCONF = 'setup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'MyPet/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -88,8 +88,8 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'BancoPet',
-        'USER': 'UserPet',
+        'NAME': 'bancopet',
+        'USER': 'root',
         'PASSWORD': 'P3TL3P3TR3P3T',
         'HOST': 'localhost',
         'PORT': '3306',
