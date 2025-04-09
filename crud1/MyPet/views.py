@@ -15,17 +15,30 @@ def cadastro(request):
 
     if str(request.method) == 'POST':
         if form.is_valid():
-            cpf = form.cleaned_data['cpf']
-            nome = form.cleaned_data['nome']
-            cpf = form.cleaned_data['']
-            cpf = form.cleaned_data['']
-            cpf = form.cleaned_data['']
-            cpf = form.cleaned_data['']
-            cpf = form.cleaned_data['']
+            cpf = form.cleaned_data['Cpf']
+            nome = form.cleaned_data['Nome']
+            data_nasc = form.cleaned_data['Data de nascimento']
+            genero = form.cleaned_data['Gênero']
+            endereco = form.cleaned_data['Endereço']
+            tipo_residencia = form.cleaned_data['Tipo de residência']
+            email = form.cleaned_data['Email']
+            telefone = form.cleaned_data['Telefone']
+            senha = form.cleaned_data['Senha']
 
+            print(f'Cpf: {cpf}')
+            print(f'Nome: {nome}')
+            print(f'Data de Nascimento: {data_nasc}')
+            print(f'Gênero: {genero}')
+            print(f'Endereço: {endereco}')
+            print(f'Tipo de residência: {tipo_residencia}')
+            print(f'Email: {email}')
+            print(f'Telefone: {telefone}')
+            print(f'Senha: {senha}')
 
-
-
+            messages.success(request, 'Usuário cadastrado com sucesso!')
+            form = CadastroUsarioForm()
+        else:
+            messages.error(request, 'Erro ao criar usuário!')
 
 
     context = {
