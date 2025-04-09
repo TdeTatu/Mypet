@@ -1,3 +1,4 @@
+{% load bootstrap4 %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -10,7 +11,9 @@
     <div class="container">
         <img src="logo.png.png" alt="Logo Little Pet">
         <h2>Cadastro</h2>
-        <form>
+        <form action="{% url 'cadastro' %}" method = "post" autocomplete = "off">
+            {% csrf_token %}
+            {% bootstrap_form form %}
             <br> <input type="email" placeholder="Email" required> <br>
             <br> <input type="password" placeholder="Senha" required> <br>
             <br> <input type="tel" placeholder="Telefone" required> <br>
