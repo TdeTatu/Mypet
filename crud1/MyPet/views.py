@@ -1,13 +1,19 @@
 from django.shortcuts import render
 from django.contrib import messages
+from django.shortcuts import redirect
 
-from .forms import CadastroUsarioForm, CadastroAnimalForm, CadastroMonitorForm
+from .forms import CadastroUsarioForm, CadastroAnimalForm, AnimalModelForm 
+from .models import Animal
+#, CadastroMonitorForm 
 
 #from .models import Pessoa
 
 # Create your views here.
 def index(request):
-    return render(request, "index.html")
+    context = {
+        'animais': Animal.objects.all()
+    }
+    return render(request, "index.html", context)
 
 def cadastro(request):
 
@@ -15,25 +21,7 @@ def cadastro(request):
 
     if str(request.method) == 'POST':
         if form.is_valid():
-            cpf = form.cleaned_data['Cpf']
-            nome = form.cleaned_data['Nome']
-            data_nasc = form.cleaned_data['Data de nascimento']
-            genero = form.cleaned_data['Gênero']
-            endereco = form.cleaned_data['Endereço']
-            tipo_residencia = form.cleaned_data['Tipo de residência']
-            email = form.cleaned_data['Email']
-            telefone = form.cleaned_data['Telefone']
-            senha = form.cleaned_data['Senha']
-
-            print(f'Cpf: {cpf}')
-            print(f'Nome: {nome}')
-            print(f'Data de Nascimento: {data_nasc}')
-            print(f'Gênero: {genero}')
-            print(f'Endereço: {endereco}')
-            print(f'Tipo de residência: {tipo_residencia}')
-            print(f'Email: {email}')
-            print(f'Telefone: {telefone}')
-            print(f'Senha: {senha}')
+            form.send_mail()
 
             messages.success(request, 'Usuário cadastrado com sucesso!')
             form = CadastroUsarioForm()
@@ -67,3 +55,23 @@ def meuspets(request):
 def acompanhamento(request):
     return render(request, "MyPet/acompanhamento.html")
 
+def animal(request):
+
+    if str(request.user) != 'AnonymousUser':
+        if str(request.method) == 'POST':
+            form = AnimalModelForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+
+                messages.sucess(request, 'Animal salvo com sucesso')
+                form = AnimalModelForm()
+            else:
+                messages.error(request, 'Falha ao salvar animal')  
+        else: 
+            form = AnimalModelForm()
+        context = {
+            'form': form
+        }
+        return render(request, 'animal.html', context)
+    else:
+        return redirect('index')

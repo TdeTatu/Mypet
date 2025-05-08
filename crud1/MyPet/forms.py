@@ -1,4 +1,7 @@
 from django import forms
+from django.core.mail.message import EmailMessage
+
+from .models import Animal
 
 class CadastroUsarioForm(forms.Form):
     cpf = forms.CharField(label = 'Cpf', max_length=100)
@@ -30,5 +33,23 @@ class CadastroMonitorForm(forms.Form):
     telefone = forms.CharField(label = 'Telefone', max_length=100)
     senha = forms.CharField(label = 'Senha', max_length=100)
 
+class ContatoForm(forms.Form):
+    nome = forms.CharField(label= 'Nome', max_length=100, required=False)
+    def send_email(self):
+        nome = self.cleaned_data['nome']
 
+        conteudo = f'Nome: {nome}\nEmail: {email}\n'
 
+        mail = EmailMessage(
+            subject= "Email enviado pelo sistema",
+            body= conteudo,
+            from_email= 'contato@seudominio.com.br',
+            to= ['contato@seudominio.com.br', ],
+            headers= {'Reply-To': email}
+        )
+        mail.send()
+
+class AnimalModelForm(forms.ModelForm):
+    class Meta:
+        model = Animal
+        fields = ['Nome','Especie','Raca','Porte','sexo','dt_nascimento']

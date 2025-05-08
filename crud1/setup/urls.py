@@ -2,7 +2,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from MyPet.views import index, cadastro, cadastro_pet, telaprincipal, meuspets, acompanhamento
-
+from django.conf.urls.stactic import static
+from django.conf import settings
 
 urlpatterns = [
     path('ControleSupremo/', admin.site.urls),
@@ -13,5 +14,5 @@ urlpatterns = [
     path('telaprincipal/', telaprincipal, name= 'telaprincipal'),
     path('meuspets/', meuspets, name= 'meuspets'),
     path('acompanhamento/', acompanhamento, name= 'acompanhamento')
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
