@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from MyPet.views import index, cadastro, cadastro_pet, telaprincipal, meuspets, acompanhamento
-from django.conf.urls.stactic import static
+from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [

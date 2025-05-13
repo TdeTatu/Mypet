@@ -52,4 +52,4 @@ class ContatoForm(forms.Form):
 class AnimalModelForm(forms.ModelForm):
     class Meta:
         model = Animal
-        fields = ['Nome','Especie','Raca','Porte','sexo','dt_nascimento']
+        fields = ['nome','especie','raca','porte','sexo','dt_nascimento']
