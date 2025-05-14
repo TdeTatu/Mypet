@@ -33,7 +33,7 @@ def cadastro(request):
         'form': form
     }
 
-    return render(request, "MyPet/cadastro.html", context)
+    return render(request, "cadastro.html", context)
 
 def cadastro_pet(request):
 
@@ -47,7 +47,7 @@ def cadastro_pet(request):
     return render(request, "MyPet/cadastro_pet.html", context) 
 
 def telaprincipal(request):
-    return render(request, "MyPet/telaprincipal.html")
+    return render(request, "telaprincipal.html")
 
 def meuspets(request):
     return render(request, "MyPet/meuspets.html")

@@ -12,10 +12,10 @@
         <form action="telaprincipal.html">
             <br><input type="email" placeholder="Email"><br>
             <br><input type="password" placeholder="Senha"><br>
-           <br> <button type="submit">Entrar</button><br>
+            <br> <a href="{% url 'telaprincipal' %}" class="btn btn-primary">Entrar</a> <br>
         </form>
         #enctype= "multipart/form-data"
-        <p>Primeiro acesso? <a href="cadastro.html">Cadastre-se</a></p>
+        <p>Primeiro acesso? <a href="{% url 'cadastro' %}">Cadastro</a></p>
     </div>
 </body>
 </html>
