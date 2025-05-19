@@ -14,11 +14,17 @@
         <h2>Cadastro</h2>
         <form action="{% url 'cadastro' %}" method = "post" autocomplete = "off">
             {% csrf_token %}
-            {% bootstrap_form form %}
-            <br> <input type="email" placeholder="Email" required> <br>
-            <br> <input type="password" placeholder="Senha" required> <br>
-            <br> <input type="tel" placeholder="Telefone" required> <br>
-            <br> <input type="date" placeholder="Data de Nascimento" required> <br>
+
+            {{ form.cpf.label_tag }} {{ form.cpf }}<br><br>
+            {{ form.nome.label_tag }} {{ form.nome }}<br><br>
+            {{ form.data_nascimento.label_tag }} {{ form.data_nascimento }}<br><br>
+            {{ form.genero.label_tag }} {{ form.genero }}<br><br>
+            {{ form.email.label_tag }} {{ form.email }}<br><br>
+            {{ form.senha.label_tag }} {{ form.senha }}<br><br>
+            {{ form.telefone.label_tag }} {{ form.telefone }}<br><br>
+            {{ form.endereco.label_tag }} {{ form.endereco }}<br><br>
+            {{ form.tipo_residencia.label_tag }} {{ form.tipo_residencia }}<br><br>
+
              <label>
                 <br> <input type="checkbox" required> <br>
                 Aceito os termos de uso

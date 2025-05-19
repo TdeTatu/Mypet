@@ -3,16 +3,31 @@ from django.core.mail.message import EmailMessage
 
 from .models import Animal
 
+# Opções para os campos tipo select
+TIPOS_RESIDENCIA = [
+    ('', 'Selecione o tipo de residência'),
+    ('casa', 'Casa'),
+    ('casa_grande', 'Casa Grande'),
+    ('apartamento', 'Apartamento'),
+]
+
+GENEROS = [
+    ('', 'Selecione o gênero'),
+    ('masculino', 'Masculino'),
+    ('feminino', 'Feminino'),
+    ('outro', 'Outro'),
+]
+
 class CadastroUsarioForm(forms.Form):
     cpf = forms.CharField(label = 'Cpf', max_length=100)
     nome = forms.CharField(label = 'Nome', max_length=100)
-    data_de_nasc = forms.DateField(label = 'Data de nascimento')
-    genero = forms.ChoiceField(label = 'Gênero')
+    data_de_nasc = forms.DateField(label = 'Data de nascimento', widget=forms.DateInput(attrs={'type': 'date'}))
+    genero = forms.ChoiceField(label = 'Gênero', choices=GENEROS)
     endereco = forms.CharField(label = 'Endereço', max_length=100)
-    tipo_residencia = forms.ChoiceField(label = 'Tipo de residência')
+    tipo_residencia = forms.ChoiceField(label = 'Tipo de residência', choices=TIPOS_RESIDENCIA)
     email = forms.EmailField(label = 'E-mail', max_length=100)
     telefone = forms.CharField(label = 'Telefone', max_length=100)
-    senha = forms.CharField(label = 'Senha', max_length=100)
+    senha = forms.CharField(label = 'Senha', widget=forms.PasswordInput, max_length=100)
 
 class CadastroAnimalForm(forms.Form):
     especie = forms.ChoiceField(label = 'Espécie')
