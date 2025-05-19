@@ -1,0 +1,98 @@
+/* Estilos Gerais */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f0f0; /* Cor de fundo mais suave */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url('cat.webp'); /* Imagem de fundo */
+  background-position: center;
+  background-size: cover;
+}
+
+/* Container Centralizado (fundo branco pequeno) */
+.container, .container1 {
+  width: 100%;
+  max-width: 500px; /* Tamanho do fundo branco */
+  margin: 20px;
+  padding: 30px;
+  background-color: #fff; /* Fundo branco para o conteúdo */
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* Sombra para destacar o fundo */
+  text-align: center;
+}
+
+/* Cabeçalho */
+header h1 {
+  font-family: 'Montserrat', sans-serif; 
+  font-size: 2.5rem; 
+  color: #9932cc;
+  font-weight: 700; 
+  text-transform: uppercase; 
+  letter-spacing: 3px; 
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1); 
+  margin-bottom: 20px; 
+}
+
+/* Botões */
+button {
+  background-color: #6200ea; /* Cor roxa mais suave */
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-top: 10px;
+  text-transform: uppercase;
+}
+
+/* Efeito ao passar o mouse (hover) */
+button:hover {
+  background-color: #3700b3; /* Cor roxa mais escura ao passar o mouse */
+  transform: translateY(-2px);
+}
+
+/* Efeito ao clicar no botão */
+button:active {
+  background-color: #03dac5; /* Cor de fundo ao clicar */
+  transform: translateY(2px);
+}
+
+/* Botão de Voltar */
+.back-button {
+  background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 5px;
+}
+
+.back-button:hover {
+  background-color: #d45e1d;
+}
+
+/* Estilo dos inputs */
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif;
+  box-sizing: border-box;
+}
+
+input[type="file"] {
+  font-size: 14px;
+}
+
+/* Caixa de texto */
+textarea {
+  resize: vertical;
+}
