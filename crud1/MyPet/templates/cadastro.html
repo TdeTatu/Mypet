@@ -7,23 +7,63 @@
     <title>Little Pet - Cadastro</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {# Opcional: Adicione um link para o Bootstrap CSS se você estiver usando bootstrap4 #}
+    {# {% bootstrap_css %} #}
 </head>
 <body>
     <div class="container">
         <img src="{% static 'img/logo.png' %}" alt="Logo Little Pet" width="200">
         <h2>Cadastro</h2>
-        <form action="{% url 'cadastro' %}" method = "post" autocomplete = "off">
+        <form action="{% url 'cadastro' %}" method="post" autocomplete="off">
             {% csrf_token %}
 
+            {# Mensagens de sucesso/erro do Django Messages #}
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {# Campos do UserCreationForm #}
+            {{ form.username.label_tag }} {{ form.username }}<br><br>
+            {{ form.password1.label_tag }} {{ form.password1 }}<br><br> {# CORREÇÃO AQUI: AGORA É 'password1' #}
+            {{ form.password2.label_tag }} {{ form.password2 }}<br><br>
+
+            {# Seus campos extras #}
             {{ form.cpf.label_tag }} {{ form.cpf }}<br><br>
             {{ form.nome.label_tag }} {{ form.nome }}<br><br>
-            {{ form.data_nascimento.label_tag }} {{ form.data_nascimento }}<br><br>
+            {{ form.data_de_nasc.label_tag }} {{ form.data_de_nasc }}<br><br>
             {{ form.genero.label_tag }} {{ form.genero }}<br><br>
             {{ form.email.label_tag }} {{ form.email }}<br><br>
-            {{ form.senha.label_tag }} {{ form.senha }}<br><br>
             {{ form.telefone.label_tag }} {{ form.telefone }}<br><br>
             {{ form.endereco.label_tag }} {{ form.endereco }}<br><br>
             {{ form.tipo_residencia.label_tag }} {{ form.tipo_residencia }}<br><br>
+
+            {# Exibição de erros detalhada #}
+            {% if form.errors %}
+                <ul style="color: red; list-style-type: none; padding: 0;">
+                    {# Erros de campo individuais #}
+                    {% for field in form %}
+                        {% if field.errors %}
+                            <li><strong>{{ field.label }}:</strong>
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {# Erros não relacionados a campos (ex: senhas não coincidem) #}
+                    {% if form.non_field_errors %}
+                        <li><strong>Erro Geral:</strong>
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </li>
+                    {% endif %}
+                </ul>
+            {% endif %}
 
              <label>
                 <br> <input type="checkbox" required> <br>
@@ -32,5 +72,7 @@
            <br> <br> <button type="submit">Cadastrar</button> <br> <br>
         <p>Já tem uma conta? <a href={% url 'index' %}>Faça login</a></p>
     </div>
+    {# Opcional: Adicione um link para o Bootstrap JS se você estiver usando bootstrap4 #}
+    {# {% bootstrap_javascript jquery='full' %} #}
 </body>
 </html>

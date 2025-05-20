@@ -10,14 +10,57 @@
 <body>
     <div class="container">
         <img src="{% static 'img/logo.png' %}" alt="Logo Little Pet" width="200">
-        <form action="telaprincipal.html">
-            <br><input type="email" placeholder="Email"><br>
-            <br><input type="password" placeholder="Senha"><br>
-            <br> <a href="{% url 'telaprincipal' %}" class="btn btn-primary">Entrar</a> <br>
+        {# O action do formulário deve ser a URL da própria página de login (index) #}
+        {# A view 'index' agora processa o formulário de login #}
+        <form method="post" action="{% url 'index' %}">
+            {% csrf_token %} {# MUITO IMPORTANTE: Token CSRF para segurança #}
+
+            {# Mensagens de sucesso/erro do Django Messages #}
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {# Renderiza os campos 'username' e 'password' do formulário de autenticação #}
+            {# O formulário é passado pela sua view 'index' no contexto #}
+            {{ form.username.label_tag }}
+            {{ form.username }}<br><br>
+
+            {{ form.password.label_tag }}
+            {{ form.password }}<br><br>
+
+            {# Exibe mensagens de erro do formulário, se houver #}
+            {% if form.errors %}
+                <ul style="color: red; list-style-type: none; padding: 0;">
+                    {# Erros de campo individuais #}
+                    {% for field in form %}
+                        {% if field.errors %}
+                            <li><strong>{{ field.label }}:</strong>
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {# Erros não relacionados a campos (ex: credenciais inválidas) #}
+                    {% if form.non_field_errors %}
+                        <li><strong>Erro Geral:</strong>
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </li>
+                    {% endif %}
+                </ul>
+            {% endif %}
+
+            <button type="submit">Entrar</button>
         </form>
-        
+
         <p>Primeiro acesso?
-        <a href="{% url 'cadastro' %}">  Cadastre-se aqui!</a></p>
+        <a href="{% url 'cadastro' %}">  Cadastre-se aqui!</a></p>
     </div>
 </body>
 </html>

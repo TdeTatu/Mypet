@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'MyPet.apps.MypetConfig',
+    'MyPet',
     'bootstrap4',
     'stdimage',
     ]
@@ -145,14 +145,17 @@ EMAIL_HOST = 'localhost'
 EMAIL_HOST_USER = 'no.reply@seudominio.com.br'
 EMAIL_PORT = 587
 EMAIL_USER_TSL = True
-EMAIL_HOST_PASSWORD = 'sua-senha' 
+EMAIL_HOST_PASSWORD = 'sua-senha'
 """
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+# IMPORTANTE: A URL para onde o Django redireciona após um login bem-sucedido
+LOGIN_REDIRECT_URL = 'telaprincipal'
 
-LOGOUT_REDIRECT_URL = 'index'
+# A URL para onde o Django redireciona após o logout
+LOGOUT_REDIRECT_URL = 'index' # Redireciona para a página de login (index) após o logout
+
+# A URL para onde o Django redireciona usuários não autenticados que tentam acessar
+# uma view protegida por @login_required (por padrão é '/accounts/login/')
+LOGIN_URL = 'index' # Faz com que a raiz (index.html) seja a página de login
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
