@@ -3,96 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Little Pet - Acompanhamento</title>
+    <title>Little Pet - Acompanhamento e Visitas</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% load bootstrap4 %} {# Carregue as tags do bootstrap4 AQUI #}
+
+    {% bootstrap_css %} {# Inclui o CSS do Bootstrap #}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}"> {# Seu CSS customizado #}
+    <style>
+        /* Estilos básicos para o container, pode adaptar ao seu styles.css */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 25px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .back-button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            float: left; /* Para posicionar à esquerda do título */
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover { background-color: #0056b3; }
+        .form-section, .list-section {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .form-section h2, .list-section h2 {
+            color: #555;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #28a745;
+            border-color: #28a745;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover { background-color: #218838; border-color: #1e7e34; }
+
+        .visita-card {
+            border: 1px solid #d1e7dd;
+            background-color: #eaf7ed;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95em;
+        }
+        .visita-card strong { color: #28a745; }
+        .no-visits {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+        .messages {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .messages li {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .messages .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .messages .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .messages .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .messages .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+        .pet-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #eee;
+        }
+        .pet-selection-card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .pet-selection-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 2px solid #007bff;
+        }
+        .pet-selection-card h4 {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #444;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <!-- Botão de Voltar -->
-        <button class="back-button" onclick="window.location.href='{% url 'telaprincipal' %}'">← Voltar</button>
-        
-        <h2>Acompanhamento de Pet</h2>
-        
-        <!-- Seleção do PET -->
-        <label for="pets">Escolha um Pet para acompanhar:</label>
-        <select id="pets" onchange="exibirInformacoesPet()">
-            <option value="">Selecione um pet</option>
-        </select>
-        
-        <div id="informacoes-pet" style="display: none;">
-            <h3>Informações do Pet</h3>
-            <div id="foto-pet"></div>
-            <p><strong>Nome:</strong> <span id="nome-pet"></span></p>
-            <p><strong>Idade:</strong> <span id="idade-pet"></span> anos</p>
-            <p><strong>Cor:</strong> <span id="cor-pet"></span></p>
-            <p><strong>Tamanho:</strong> <span id="tamanho-pet"></span></p>
-            
-            <!-- Estado de Saúde -->
-            <p><strong>Estado de Saúde:</strong> <span id="saude-pet"></span></p>
-            <textarea id="estado-saude-input" placeholder="Atualize o estado de saúde..." rows="3" style="width: 100%;" oninput="atualizarEstadoSaude()"></textarea>
+        <header>
+            <a href="{% url 'telaprincipal' %}" class="back-button">← Voltar</a>
+            <h1>Agendamento de Acompanhamento</h1>
+        </header>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="form-section">
+            <h2>Agendar Nova Visita</h2>
+            {% if meus_pets %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form form %} {# Renderiza o formulário de visita #}
+                    <button type="submit" class="btn btn-primary">Agendar Visita</button>
+                </form>
+            {% else %}
+                <div class="no-pets-mural">
+                    <p>Você precisa cadastrar um pet para poder agendar um acompanhamento para ele.</p>
+                    <p><a href="{% url 'cadastro_pet' %}" class="btn btn-primary">Cadastrar Novo Pet</a></p>
+                </div>
+            {% endif %}
         </div>
+
+        <div class="list-section">
+            <h2>Suas Visitas Agendadas</h2>
+            {% if visitas_agendadas %}
+                {% for visita in visitas_agendadas %}
+                    <div class="visita-card">
+                        <div>
+                            <strong>Pet:</strong> {{ visita.animal.nome }}<br>
+                            <strong>Data:</strong> {{ visita.data_visita|date:"d/m/Y" }}<br>
+                            <strong>Hora:</strong> {{ visita.hora_visita|time:"H:i" }}<br>
+                            <strong>Status:</strong> {{ visita.get_status_display }}
+                            {% if visita.observacoes %}<br>
+                            <strong>Obs:</strong> {{ visita.observacoes }}
+                            {% endif %}
+                        </div>
+                        {# Você pode adicionar botões para editar/cancelar aqui se desejar #}
+                        {# <button class="btn btn-sm btn-danger">Cancelar</button> #}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-visits">
+                    <p>Você não possui visitas de acompanhamento agendadas.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Opcional: Mostrar uma lista dos pets do usuário para referência #}
+        {% if meus_pets %}
+            <div class="list-section">
+                <h2>Seus Pets Disponíveis para Acompanhamento</h2>
+                <div class="pet-selection-grid">
+                    {% for pet in meus_pets %}
+                        <div class="pet-selection-card">
+                            {% if pet.imagem %}
+                                <img src="{{ pet.imagem.url }}" alt="{{ pet.nome }}">
+                            {% else %}
+                                <img src="{% static 'img/default_pet.png' %}" alt="Sem Imagem">
+                            {% endif %}
+                            <h4>{{ pet.nome }}</h4>
+                            <p>{{ pet.especie }} - {{ pet.raca }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
     </div>
 
-    <script>
-        // Carregar lista de pets
-        function carregarPets() {
-            let pets = JSON.parse(localStorage.getItem('pets')) || [];
-            let select = document.getElementById('pets');
-
-            pets.forEach((pet, index) => {
-                let option = document.createElement('option');
-                option.value = index;
-                option.textContent = pet.nome;
-                select.appendChild(option);
-            });
-        }
-
-        // Exibir informações do pet
-        function exibirInformacoesPet() {
-            let pets = JSON.parse(localStorage.getItem('pets')) || [];
-            let petIndex = document.getElementById('pets').value;
-            let informacoesDiv = document.getElementById('informacoes-pet');
-
-            if (petIndex !== "") {
-                let pet = pets[petIndex];
-
-                document.getElementById('nome-pet').textContent = pet.nome;
-                document.getElementById('idade-pet').textContent = pet.idade;
-                document.getElementById('cor-pet').textContent = pet.cor;
-                document.getElementById('tamanho-pet').textContent = pet.tamanho;
-                document.getElementById('saude-pet').textContent = pet.estadoSaude || 'Não informado';
-
-                // Exibir foto do pet
-                let fotoDiv = document.getElementById('foto-pet');
-                fotoDiv.innerHTML = `<img src="${pet.foto}" alt="Foto do pet" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">`;
-
-                // Exibir informações
-                informacoesDiv.style.display = 'block';
-            } else {
-                informacoesDiv.style.display = 'none';
-            }
-        }
-
-        // Atualizar estado de saúde
-        function atualizarEstadoSaude() {
-            let pets = JSON.parse(localStorage.getItem('pets')) || [];
-            let petIndex = document.getElementById('pets').value;
-
-            if (petIndex !== "") {
-                let pet = pets[petIndex];
-                let novoEstadoSaude = document.getElementById('estado-saude-input').value;
-
-                pet.estadoSaude = novoEstadoSaude; // Atualiza o estado de saúde do pet
-                localStorage.setItem('pets', JSON.stringify(pets)); // Salva as informações atualizadas no localStorage
-
-                // Atualiza a exibição do estado de saúde
-                document.getElementById('saude-pet').textContent = novoEstadoSaude;
-            }
-        }
-
-        // Carregar pets na inicialização
-        window.onload = carregarPets;
-    </script>
+    {% bootstrap_jquery %}
+    {% bootstrap_javascript %}
 </body>
 </html>

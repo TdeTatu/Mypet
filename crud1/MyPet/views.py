@@ -3,10 +3,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .forms import CadastroUsarioForm, AnimalModelForm
-from .models import Animal, Perfil
+# Importe VisitaForm aqui
+from .forms import CadastroUsarioForm, AnimalModelForm, VisitaForm
+# Importe Visita aqui
+from .models import Animal, Perfil, Visita
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm # Importe AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 
 def cadastro(request):
@@ -137,7 +139,12 @@ def animal(request):
 
 @login_required
 def muralpets(request):
-    return render(request, "muralpets.html", {})
+    # Filtra apenas os animais que estão disponíveis para adoção
+    animais_para_adocao = Animal.objects.filter(disponivel_adocao=True, ativo=True).order_by('nome')
+    context = {
+        'animais': animais_para_adocao # Passa a lista de animais para o template
+    }
+    return render(request, "muralpets.html", context)
 
 # Funções de Login/Logout
 def user_login(request):
@@ -163,3 +170,44 @@ def user_logout(request):
     logout(request)
     messages.info(request, "Você foi desconectado com sucesso.")
     return redirect('index')
+
+@login_required
+def acompanhamento(request):
+    # Primeiro, tente obter o perfil do usuário logado
+    perfil_usuario = None
+    try:
+        perfil_usuario = Perfil.objects.get(user=request.user)
+    except Perfil.DoesNotExist:
+        messages.error(request, 'Seu perfil de usuário não foi encontrado. Por favor, cadastre seu perfil para agendar visitas.')
+        return redirect('telaprincipal') # Redireciona se o perfil não existir
+
+    if request.method == 'POST':
+        # Passa o perfil do usuário para o formulário para filtrar os animais
+        form = VisitaForm(request.POST, user_profile=perfil_usuario)
+        if form.is_valid():
+            visita = form.save(commit=False)
+            visita.solicitante = perfil_usuario # Associa a visita ao perfil do usuário logado
+            visita.save()
+            messages.success(request, 'Visita agendada com sucesso!')
+            return redirect('acompanhamento') # Redireciona para a mesma página para mostrar o agendamento
+        else:
+            print("\n--------------------------------------------------")
+            print("DEBUG: Formulário de agendamento de visita INVÁLIDO!")
+            print("DEBUG: Erros Detalhados do Formulário:", form.errors)
+            print("DEBUG: Dados recebidos via POST:", request.POST)
+            print("--------------------------------------------------\n")
+            messages.error(request, 'Erro ao agendar visita! Verifique os dados.')
+    else: # GET request
+        # Passa o perfil do usuário para o formulário para filtrar os animais
+        form = VisitaForm(user_profile=perfil_usuario)
+
+    # Busca as visitas agendadas pelo usuário logado
+    visitas_agendadas = Visita.objects.filter(solicitante=perfil_usuario).order_by('data_visita', 'hora_visita')
+
+    context = {
+        'form': form,
+        'visitas_agendadas': visitas_agendadas,
+        # Adicione os pets do usuário logado aqui para exibição fora do formulário, se quiser
+        'meus_pets': Animal.objects.filter(owner=perfil_usuario).order_by('nome')
+    }
+    return render(request, "acompanhamento.html", context)

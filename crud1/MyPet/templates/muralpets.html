@@ -5,18 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mural de Pets</title>
     {% load static %}
+    {% load bootstrap4 %} {# Adicionado para caso você queira usar estilos Bootstrap futuramente #}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <style>
         /* Apenas para teste, você pode integrar seu CSS aqui */
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #fff; }
+
+        /* Novos estilos para os cards de pets no mural */
+        .pet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .mural-pet-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            background-color: #fff;
+            display: flex; /* Para centralizar o conteúdo verticalmente se necessário */
+            flex-direction: column;
+            justify-content: space-between; /* Para empurrar o botão para baixo */
+        }
+        .mural-pet-card img {
+            width: 100%;
+            height: 200px; /* Altura fixa para as imagens */
+            object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
+            border-bottom: 1px solid #eee;
+        }
+        .mural-pet-card .card-body {
+            padding: 15px;
+            flex-grow: 1; /* Permite que o corpo ocupe o espaço restante */
+        }
+        .mural-pet-card h5 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+        .mural-pet-card p {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .no-pets-mural {
+            text-align: center;
+            padding: 30px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            color: #777;
+            font-size: 1.1em;
+            grid-column: 1 / -1; /* Ocupa todas as colunas no grid */
+        }
+        .btn-adotar {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .btn-adotar:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Mural de Pets em Desenvolvimento</h1>
-        <p>Esta página irá exibir fotos e informações de outros pets da comunidade.</p>
+        <h1>Mural de Pets para Adoção</h1>
+        <p>Aqui você encontra pets disponíveis para adoção!</p>
         <button class="back-button" onclick="window.location.href='{% url 'telaprincipal' %}'">← Voltar</button>
+
+        {# Mensagens do Django (sucesso, erro, etc.) #}
+        {% if messages %}
+            <ul class="messages" style="list-style-type: none; padding: 0;">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %} style="padding: 10px; margin-bottom: 10px; border-radius: 5px; background-color: #d1ecf1; color: #0c5460;">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="pet-grid">
+            {% if animais %} {# 'animais' é a lista passada pela view #}
+                {% for animal in animais %}
+                    <div class="mural-pet-card">
+                        {% if animal.imagem %}
+                            <img src="{{ animal.imagem.url }}" alt="Foto de {{ animal.nome }}">
+                        {% else %}
+                            <img src="{% static 'img/default_pet.png' %}" alt="Foto Padrão">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5>{{ animal.nome }}</h5>
+                            <p><strong>Espécie:</strong> {{ animal.get_especie_display }}</p>
+                            <p><strong>Raça:</strong> {{ animal.raca }}</p>
+                            <p><strong>Porte:</strong> {{ animal.get_porte_display }}</p>
+                            <p><strong>Sexo:</strong> {{ animal.get_sexo_display }}</p>
+                            {% if animal.idade %}<p><strong>Idade:</strong> {{ animal.idade }}</p>{% endif %}
+                            <a href="#" class="btn-adotar">Quero Adotar!</a> {# Você pode linkar para uma página de detalhes ou contato aqui #}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-pets-mural">
+                    <p>Nenhum animal disponível para adoção no momento. Volte mais tarde!</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>

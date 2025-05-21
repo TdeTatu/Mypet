@@ -43,7 +43,6 @@ class Animal(Base):
     )
     nome = models.CharField('Nome', max_length=100)
 
-    # DEFINIÇÃO DAS OPÇÕES (CHOICES) PARA DROPDOWNS
     ESPECIE_CHOICES = [
         ('cachorro', 'Cachorro'),
         ('gato', 'Gato'),
@@ -66,7 +65,7 @@ class Animal(Base):
     ]
 
     especie = models.CharField('Espécie', max_length=100, choices=ESPECIE_CHOICES)
-    raca = models.CharField('Raça', max_length=100) # Mantido como CharField livre para raças diversas
+    raca = models.CharField('Raça', max_length=100)
     porte = models.CharField('Porte', max_length=100, choices=PORTE_CHOICES)
     sexo = models.CharField('Sexo', max_length=100, choices=SEXO_CHOICES)
     dt_nascimento = models.DateField('Data de nascimento')
@@ -75,6 +74,7 @@ class Animal(Base):
     cor = models.CharField('Cor', max_length=50, null=True, blank=True)
     tamanho = models.CharField('Tamanho', max_length=50, null=True, blank=True)
     slug = models.SlugField('Slug', max_length=100, blank=True, editable=False)
+    disponivel_adocao = models.BooleanField('Disponível para Adoção?', default=False)
 
     class Meta:
         verbose_name = 'Animal'
@@ -87,3 +87,30 @@ def animal_pre_save(signal, instance, sender, **kwargs):
     instance.slug = slugify(instance.nome)
 
 signals.pre_save.connect(animal_pre_save, sender=Animal)
+
+# NOVO MODELO: VISITA
+class Visita(Base):
+    # O usuário que está agendando a visita (dono do animal)
+    # ou o usuário que está solicitando a visita
+    solicitante = models.ForeignKey(Perfil, on_delete=models.CASCADE, verbose_name='Solicitante da Visita', related_name='visitas_solicitadas')
+    # O animal que será visitado
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, verbose_name='Animal a ser visitado', related_name='visitas')
+    data_visita = models.DateField('Data da Visita')
+    hora_visita = models.TimeField('Hora da Visita')
+    observacoes = models.TextField('Observações', blank=True, null=True)
+    # status da visita (e.g., 'pendente', 'confirmada', 'cancelada', 'realizada')
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('confirmada', 'Confirmada'),
+        ('cancelada', 'Cancelada'),
+        ('realizada', 'Realizada'),
+    ]
+    status = models.CharField('Status da Visita', max_length=20, choices=STATUS_CHOICES, default='pendente')
+
+    class Meta:
+        verbose_name = 'Visita de Acompanhamento'
+        verbose_name_plural = 'Visitas de Acompanhamento'
+        ordering = ['data_visita', 'hora_visita'] # Ordena as visitas por data e hora
+
+    def __str__(self):
+        return f"Visita para {self.animal.nome} em {self.data_visita} às {self.hora_visita} (Solicitante: {self.solicitante.user.username})"
