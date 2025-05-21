@@ -1,60 +1,41 @@
-{% load bootstrap4 %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Little Pet - Cadastro de Pet</title>
+    <title>Cadastro de Pet</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% load bootstrap4 %} {# ESSENCIAL para estilizar o formulário #}
+
+    {% bootstrap_css %} {# Inclui o CSS do Bootstrap #}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}"> {# Seu CSS customizado #}
 </head>
 <body>
     <div class="container">
-        <button class="back-button" onclick="window.location.href='{% url 'meuspets' %}'">← Voltar</button>
-        
-        <h2>Cadastro de Pet</h2>
-        <form id="form-cadastro" action="{% url 'cadastro_pet' %}" method = "post" autocomplete = "off">
+        <header>
+            <button class="back-button" onclick="window.location.href='{% url 'telaprincipal' %}'">← Voltar</button>
+            <h1>Cadastrar Novo Pet</h1>
+        </header>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+
+            {# Este é o ponto crucial: renderiza todos os campos do formulário com estilo Bootstrap #}
             {% bootstrap_form form %}
-            <br> <input type="text" id="nome" placeholder="Nome do Pet" required>
-            <br><input type="number" id="idade" placeholder="Idade do Pet" required>
-            <br><input type="text" id="cor" placeholder="Cor do Pet" required>
-            <br><input type="text" id="tamanho" placeholder="Tamanho do Pet" required>
-            <br><input type="file" id="foto" accept="image/*" required><br>
-            {% buttons %}
-            <br><button type="submit">Cadastrar</button><br>
-            {% endbuttons %}    
+
+            <button type="submit" class="btn btn-primary">Cadastrar Pet</button>
         </form>
     </div>
 
-    <script>
-        document.getElementById('form-cadastro').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            let nome = document.getElementById('nome').value;
-            let idade = document.getElementById('idade').value;
-            let cor = document.getElementById('cor').value;
-            let tamanho = document.getElementById('tamanho').value;
-            let foto = document.getElementById('foto').files[0];
-
-            let reader = new FileReader();
-            reader.onloadend = function() {
-                let novoPet = {
-                    nome: nome,
-                    idade: idade,
-                    cor: cor,
-                    tamanho: tamanho,
-                    foto: reader.result, // Foto convertida em base64
-                };
-
-                let pets = JSON.parse(localStorage.getItem('pets')) || [];
-                pets.push(novoPet);
-                localStorage.setItem('pets', JSON.stringify(pets));
-
-                window.location.href = 'meuspets.html'; // Redireciona para Meus Pets
-            };
-            reader.readAsDataURL(foto);
-        });
-    </script>
+    {% bootstrap_jquery %} {# Inclui jQuery necessário para Bootstrap (se usar componentes JS) #}
+    {% bootstrap_javascript %} {# Inclui o JavaScript do Bootstrap #}
 </body>
 </html>

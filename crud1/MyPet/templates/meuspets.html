@@ -4,8 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Little Pet - Meus Pets</title>
-    {% load static %}
+    {% load static %} {# ESSENCIAL para usar {% static %} #}
+    {# Se você usa Bootstrap CSS aqui, adicione a linha: {% load bootstrap4 %} e {% bootstrap_css %} #}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Estilos básicos para os pets (adapte ao seu CSS) */
+        .pet-card {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .pet-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #007bff;
+        }
+        .pet-details h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .pet-details p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .no-pets {
+            text-align: center;
+            padding: 20px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            color: #777;
+        }
+        .messages {
+            list-style-type: none;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .messages li {
+            padding: 8px 15px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        .messages .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .messages .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .messages .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .messages .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -14,32 +65,49 @@
             <h1>Meus Pets</h1>
         </header>
 
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
         <div id="lista-pets">
-            <!-- Lista de Pets -->
+            {# Lógica para exibir pets do banco de dados #}
+            {% if pets %}
+                {% for pet in pets %}
+                    <div class="pet-card">
+                        {% if pet.imagem %}
+                            <img src="{{ pet.imagem.url }}" alt="{{ pet.nome }}">
+                        {% else %}
+                            <img src="{% static 'img/default_pet.png' %}" alt="Sem Imagem">
+                        {% endif %}
+                        <div class="pet-details">
+                            <h3>{{ pet.nome }}</h3>
+                            <p><strong>Espécie:</strong> {{ pet.get_especie_display }}</p> {# Usar get_FOO_display para choices #}
+                            <p><strong>Raça:</strong> {{ pet.raca }}</p>
+                            <p><strong>Sexo:</strong> {{ pet.get_sexo_display }}</p> {# Usar get_FOO_display para choices #}
+                            <p><strong>Porte:</strong> {{ pet.get_porte_display }}</p> {# Usar get_FOO_display para choices #}
+                            <p><strong>Data de Nascimento:</strong> {{ pet.dt_nascimento|date:"d/m/Y" }}</p>
+                            {% if pet.idade %}<p><strong>Idade:</strong> {{ pet.idade }}</p>{% endif %}
+                            {% if pet.cor %}<p><strong>Cor:</strong> {{ pet.cor }}</p>{% endif %}
+                            {% if pet.tamanho %}<p><strong>Tamanho:</strong> {{ pet.tamanho }}</p>{% endif %}
+                            <button onclick="window.location.href='{% url 'acompanhamento' %}'">Acompanhar</button>
+                            {# Você pode adicionar um link para detalhes do pet aqui, se tiver uma view para isso #}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                
+            {% endif %}
         </div>
 
         <button onclick="window.location.href='{% url 'cadastro_pet' %}'">Cadastrar Novo Pet</button>
     </div>
 
-    <script>
-        function carregarPets() {
-            let pets = JSON.parse(localStorage.getItem('pets')) || [];
-            let listaPetsDiv = document.getElementById('lista-pets');
-            listaPetsDiv.innerHTML = '';
+    {# REMOVIDO O SCRIPT JAVASCRIPT DE localStorage #}
+    {# Ele não é mais necessário, pois os dados vêm do Django/banco de dados #}
 
-            pets.forEach((pet, index) => {
-                let petDiv = document.createElement('div');
-                petDiv.classList.add('pet');
-                petDiv.innerHTML = `
-                    <img src="${pet.foto}" alt="${pet.nome}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
-                    <h3>${pet.nome}</h3>
-                    <button onclick="window.location.href='acompanhamento.html?petIndex=${index}'">Acompanhar</button>
-                `;
-                listaPetsDiv.appendChild(petDiv);
-            });
-        }
-
-        window.onload = carregarPets;
-    </script>
 </body>
 </html>

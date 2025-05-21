@@ -1,19 +1,15 @@
 # MyPet/urls.py
 
 from django.urls import path
-
-# Certifique-se que todas as views necessárias estão importadas aqui
-from .views import cadastro, cadastro_pet, telaprincipal, meuspets, acompanhamento, animal, muralpets # Adicione 'muralpets' aqui
+from . import views # Importa todas as views do seu aplicativo
 
 urlpatterns = [
-    # A URL raiz agora é tratada diretamente no setup/urls.py como a página de login.
-    # Não precisamos mais do path('', index, name='index'), aqui no app.
-
-    path('cadastro/', cadastro, name= 'cadastro'),
-    path('cadastro_pet/', cadastro_pet, name= 'cadastro_pet'),
-    path('telaprincipal/', telaprincipal, name= 'telaprincipal'),
-    path('meuspets/', meuspets, name= 'meuspets'),
-    path('acompanhamento/', acompanhamento, name= 'acompanhamento'),
-    path('animal/', animal, name= 'animal'),
-    path('muralpets/', muralpets, name='muralpets'), # <--- NOVA URL AQUI
+    # path('', views.index, name='index'), # Se você tiver uma view 'index' separada para a home
+    path('cadastro/', views.cadastro, name='cadastro'),
+    path('cadastro_pet/', views.cadastro_pet, name='cadastro_pet'),
+    path('telaprincipal/', views.telaprincipal, name='telaprincipal'),
+    path('meuspets/', views.meuspets, name='meuspets'),
+    path('acompanhamento/', views.acompanhamento, name='acompanhamento'),
+    path('muralpets/', views.muralpets, name='muralpets'),
+    path('animal/', views.animal, name='animal'), # Verifique se essa URL é necessária/tem propósito claro
 ]
