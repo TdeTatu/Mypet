@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mural de Pets</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Apenas para teste, você pode integrar seu CSS aqui */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mural de Pets em Desenvolvimento</h1>
+        <p>Esta página irá exibir fotos e informações de outros pets da comunidade.</p>
+        <button class="back-button" onclick="window.location.href='{% url 'telaprincipal' %}'">← Voltar</button>
+    </div>
+</body>
+</html>

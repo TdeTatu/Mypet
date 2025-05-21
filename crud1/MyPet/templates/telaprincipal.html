@@ -10,15 +10,30 @@
 <body>
     <div class="container1">
         <header>
-            <a href={% url 'index' %} class="back-button">← Voltar</a>
+            {# O botão "Voltar" agora leva para a URL nomeada 'index' #}
+            <button class="back-button" onclick="window.location.href='{% url 'index' %}'">← Voltar</button>
             <h1>Menu</h1>
         </header>
         <div class="content">
+            {# Mensagens de sucesso/erro do Django Messages, se houver #}
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {# Boas-vindas ao usuário logado #}
+            <p>Olá, {% if user.is_authenticated %}{{ user.username }}{% else %}usuário{% endif %}!</p>
+
             <div class="buttons">
-                <br><button class="meuspets" onclick="window.location.href='meuspets.html'">Meus Pets</button><br>
+                <br><button class="meuspets" onclick="window.location.href='{% url 'meuspets' %}'">Meus Pets</button><br>
 
+                <br><button class="acompanhamentos" onclick="window.location.href='{% url 'acompanhamento' %}'">Acompanhamento</button><br>
 
-                <br><button class="acompanhamentos">Acompanhamento</button><br>
+                <br><button class="muralpets" onclick="window.location.href='{% url 'muralpets' %}'">Mural de Pets</button><br>
+
             </div>
         </div>
     </div>

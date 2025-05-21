@@ -5,27 +5,14 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from .forms import CadastroUsarioForm, CadastroAnimalForm, AnimalModelForm
 from .models import Animal, Perfil
-# Adicione este import para o decorador de login
 from django.contrib.auth.decorators import login_required
-# REMOVIDO: from django.contrib.auth.forms import AuthenticationForm
-# REMOVIDO: from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, logout, authenticate
 
 
-# A view 'index' agora é apenas uma view normal, não a de login.
-# Ela será usada se você criar uma nova URL para ela no futuro, ou se o LOGOUT_REDIRECT_URL
-# apontar para ela e ela não for a mesma da view de login.
-# Como agora a URL raiz '/' aponta para auth_views.LoginView, esta 'index'
-# só será chamada se você criar uma URL específica para ela.
-def index(request):
-    # Se você quiser que o index.html tenha conteúdo diferente do login,
-    # e que o login seja sempre na raiz, esta view não será chamada.
-    # Se quiser que essa view seja a página inicial para LOGOUT_REDIRECT_URL,
-    # então o HTML dela não deve conter o formulário de login.
-    context = {
-        'animais': Animal.objects.all() # Exemplo de conteúdo para a página inicial
-    }
-    return render(request, "index.html", context)
-
+# A view 'index' não é mais definida aqui, pois a URL '/' (raiz)
+# agora aponta diretamente para a view de login do Django no setup/urls.py.
+# A view 'index' que usamos para o HTML da página de login é a padrão do Django.
 
 def cadastro(request):
     form = CadastroUsarioForm(request.POST or None)
@@ -47,8 +34,7 @@ def cadastro(request):
             )
 
             messages.success(request, 'Usuário cadastrado com sucesso!')
-            # Redireciona para a página de login (que agora é a raiz)
-            return redirect('index')
+            return redirect('index') # Redireciona para a página de login
 
         else:
             messages.error(request, 'Erro ao criar usuário! Verifique os dados.')
@@ -59,24 +45,30 @@ def cadastro(request):
     }
     return render(request, "cadastro.html", context)
 
+# Corrigido o caminho do template para "cadastro_pet.html"
 def cadastro_pet(request):
     form = CadastroAnimalForm()
     context = {
         'form': form
     }
-    return render(request, "MyPet/cadastro_pet.html", context)
+    return render(request, "cadastro_pet.html", context)
 
-@login_required # <--- Protege a página, exige login
+@login_required # Protege a página, exige login
 def telaprincipal(request):
     return render(request, "telaprincipal.html")
 
+@login_required # Protege a página, exige login
+# Corrigido o caminho do template para "meuspets.html"
 def meuspets(request):
-    return render(request, "MyPet/meuspets.html")
-
-def acompanhamento(request):
-    return render(request, "MyPet/acompanhamento.html")
+    return render(request, "meuspets.html", {}) # Passe um contexto vazio para consistência
 
 @login_required # Protege a página, exige login
+# Corrigido o caminho do template para "acompanhamento.html"
+def acompanhamento(request):
+    return render(request, "acompanhamento.html", {}) # Passe um contexto vazio para consistência
+
+@login_required # Protege a página, exige login
+# Corrigido o caminho do template para "animal.html"
 def animal(request):
     if request.method == 'POST':
         form = AnimalModelForm(request.POST, request.FILES)
@@ -93,3 +85,9 @@ def animal(request):
         'form': form
     }
     return render(request, 'animal.html', context)
+
+
+@login_required # Protege a página, exige login
+# Corrigido o caminho do template para "muralpets.html"
+def muralpets(request):
+    return render(request, "muralpets.html", {}) # Passe um contexto vazio para consistência

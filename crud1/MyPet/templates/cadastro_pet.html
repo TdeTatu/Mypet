@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="container">
-        <button class="back-button" onclick="window.location.href='meuspets.html'">← Voltar</button>
+        <button class="back-button" onclick="window.location.href='{% url 'meuspets' %}'">← Voltar</button>
         
         <h2>Cadastro de Pet</h2>
         <form id="form-cadastro" action="{% url 'cadastro_pet' %}" method = "post" autocomplete = "off">

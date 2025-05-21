@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <header>
-            <button class="back-button" onclick="window.location.href='telaprincipal.html'">← Voltar</button>
+            <button class="back-button" onclick="window.location.href='{% url 'telaprincipal' %}'">← Voltar</button>
             <h1>Meus Pets</h1>
         </header>
 
@@ -18,7 +18,7 @@
             <!-- Lista de Pets -->
         </div>
 
-        <button onclick="window.location.href='cadastro_pet.html'">Cadastrar Novo Pet</button>
+        <button onclick="window.location.href='{% url 'cadastro_pet' %}'">Cadastrar Novo Pet</button>
     </div>
 
     <script>

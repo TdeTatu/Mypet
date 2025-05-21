@@ -25,5 +25,4 @@ urlpatterns = [
 
 # Apenas para servir arquivos de mídia em desenvolvimento
 if settings.DEBUG:
-    # CORREÇÃO AQUI: settings.MEDIA_ROOT estava como settings.A_ROOT na última vez
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
