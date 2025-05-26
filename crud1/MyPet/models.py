@@ -1,7 +1,7 @@
 # MyPet/models.py
 
 from django.db import models
-from stdimage.models import StdImageField
+from stdimage.models import StdImageField # Importe StdImageField
 from django.contrib.auth.models import User
 
 # SIGNALS
@@ -13,7 +13,6 @@ class Perfil(models.Model):
     cpf = models.CharField(max_length=14)
     data_nascimento = models.DateField()
 
-    # --- INÍCIO DA ALTERAÇÃO SOLICITADA ---
     # Definição das opções para Gênero
     GENERO_CHOICES = [
         ('masculino', 'Masculino'),
@@ -36,7 +35,16 @@ class Perfil(models.Model):
         ('outros', 'Outros'),
     ]
     tipo_residencia = models.CharField('Tipo de Residência', max_length=30, choices=TIPO_RESIDENCIA_CHOICES)
-    # --- FIM DA ALTERAÇÃO SOLICITADA ---
+
+    # --- NOVA ALTERAÇÃO: Adiciona o campo foto_perfil ---
+    foto_perfil = StdImageField(
+        'Foto de Perfil',
+        upload_to='perfis', # Pasta onde as fotos serão salvas (ex: media/perfis/)
+        variations={'thumb': (128, 128, True)}, # Cria uma thumbnail de 128x128, cortando se necessário
+        null=True, # Permite que o campo seja nulo no banco de dados
+        blank=True # Permite que o campo seja deixado em branco no formulário
+    )
+    # --- FIM DA NOVA ALTERAÇÃO ---
 
     class Meta:
         verbose_name = 'Perfil'
@@ -111,15 +119,11 @@ signals.pre_save.connect(animal_pre_save, sender=Animal)
 
 # NOVO MODELO: VISITA
 class Visita(Base):
-    # O usuário que está agendando a visita (dono do animal)
-    # ou o usuário que está solicitando a visita
     solicitante = models.ForeignKey(Perfil, on_delete=models.CASCADE, verbose_name='Solicitante da Visita', related_name='visitas_solicitadas')
-    # O animal que será visitado
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE, verbose_name='Animal a ser visitado', related_name='visitas')
     data_visita = models.DateField('Data da Visita')
     hora_visita = models.TimeField('Hora da Visita')
     observacoes = models.TextField('Observações', blank=True, null=True)
-    # status da visita (e.g., 'pendente', 'confirmada', 'cancelada', 'realizada')
     STATUS_CHOICES = [
         ('pendente', 'Pendente'),
         ('confirmada', 'Confirmada'),
@@ -131,7 +135,7 @@ class Visita(Base):
     class Meta:
         verbose_name = 'Visita de Acompanhamento'
         verbose_name_plural = 'Visitas de Acompanhamento'
-        ordering = ['data_visita', 'hora_visita'] # Ordena as visitas por data e hora
+        ordering = ['data_visita', 'hora_visita']
 
     def __str__(self):
         return f"Visita para {self.animal.nome} em {self.data_visita} às {self.hora_visita} (Solicitante: {self.solicitante.user.username})"

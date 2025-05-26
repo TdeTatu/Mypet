@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Perfil</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Editar Perfil</h1>
+        </header>
+        <div class="content">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {# Adiciona enctype="multipart/form-data" para permitir upload de arquivos (fotos) #}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {# Exibe a foto de perfil atual, se existir #}
+                {% if perfil.foto_perfil %}
+                    <img src="{{ perfil.foto_perfil.url }}" alt="Foto de Perfil" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; margin-bottom: 20px;">
+                {% else %}
+                    <p>Nenhuma foto de perfil.</p>
+                {% endif %}
+
+                {{ form.as_p }} {# Renderiza todos os campos do formulário como parágrafos #}
+
+                <button type="submit">Salvar Alterações</button>
+            </form> <br> <br> 
+            <a href="{% url 'telaprincipal' %}">Voltar ao Menu Principal</a>
+        </div>
+    </div>
+</body>
+</html>

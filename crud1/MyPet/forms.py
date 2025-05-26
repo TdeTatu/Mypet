@@ -3,36 +3,29 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Animal, Perfil, Visita # Importe Perfil (agora mais crucial para as choices)
+from .models import Animal, Perfil, Visita # Importe Perfil, Visita
 
 class CadastroUsarioForm(UserCreationForm):
     nome = forms.CharField(label='Nome Completo', max_length=255)
     cpf = forms.CharField(label='CPF', max_length=14, help_text='Formato: XXX.XXX.XXX-XX')
     data_de_nasc = forms.DateField(label='Data de Nascimento', widget=forms.DateInput(attrs={'type': 'date'}))
 
-    # --- INÍCIO DA CORREÇÃO ---
-    # Redefinir genero e tipo_residencia para usar as choices do modelo Perfil
-    # E para que o formulário saiba que são ChoiceFields
     genero = forms.ChoiceField(
         label='Gênero',
-        choices=Perfil.GENERO_CHOICES, # Pega as choices diretamente do modelo Perfil
-        widget=forms.Select # Garante que seja um dropdown
+        choices=Perfil.GENERO_CHOICES,
+        widget=forms.Select
     )
     telefone = forms.CharField(label='Telefone', max_length=20)
     endereco = forms.CharField(label='Endereço', max_length=200)
-    tipo_residencia = forms.ChoiceField( # Correção aqui
+    tipo_residencia = forms.ChoiceField(
         label='Tipo de Residência',
-        choices=Perfil.TIPO_RESIDENCIA_CHOICES, # Pega as choices diretamente do modelo Perfil
-        widget=forms.Select # Garante que seja um dropdown
+        choices=Perfil.TIPO_RESIDENCIA_CHOICES,
+        widget=forms.Select
     )
 
     class Meta(UserCreationForm.Meta):
         model = User
-        # Os campos 'genero' e 'tipo_residencia' SÃO declarados no formulário,
-        # mas não devem ser incluídos na 'Meta.fields' que aponta para o modelo User.
-        # Eles serão tratados no método 'save' personalizado.
-        # Mantemos apenas os campos que realmente pertencem ao modelo User aqui.
-        fields = UserCreationForm.Meta.fields + ('nome', 'cpf', 'data_de_nasc', 'telefone', 'endereco',) # Removido genero e tipo_residencia daqui
+        fields = UserCreationForm.Meta.fields + ('nome', 'cpf', 'data_de_nasc', 'telefone', 'endereco',)
 
     def clean_cpf(self):
         cpf = self.cleaned_data['cpf']
@@ -41,25 +34,21 @@ class CadastroUsarioForm(UserCreationForm):
             raise forms.ValidationError("CPF deve conter 11 dígitos.")
         return cpf
 
-    # SOBRESCREVER O MÉTODO SAVE: ESSENCIAL PARA CRIAR O USUÁRIO E O PERFIL JUNTOS
     def save(self, commit=True):
-        user = super().save(commit=False) # Salva o User, mas não no banco ainda
-        user.first_name = self.cleaned_data.get('nome', '') # Adiciona o nome ao campo first_name do User
+        user = super().save(commit=False)
+        user.first_name = self.cleaned_data.get('nome', '')
         if commit:
-            user.save() # Agora sim, salva o User no banco de dados
-
-            # Cria o Perfil associado ao User
+            user.save()
             Perfil.objects.create(
                 user=user,
                 cpf=self.cleaned_data['cpf'],
                 data_nascimento=self.cleaned_data['data_de_nasc'],
-                genero=self.cleaned_data['genero'], # Pega o valor do ChoiceField
+                genero=self.cleaned_data['genero'],
                 telefone=self.cleaned_data['telefone'],
                 endereco=self.cleaned_data['endereco'],
-                tipo_residencia=self.cleaned_data['tipo_residencia'] # Pega o valor do ChoiceField
+                tipo_residencia=self.cleaned_data['tipo_residencia']
             )
         return user
-    # --- FIM DA CORREÇÃO ---
 
 
 class AnimalModelForm(forms.ModelForm):
@@ -105,3 +94,27 @@ class VisitaForm(forms.ModelForm):
             self.fields['animal'].queryset = Animal.objects.filter(owner=user_profile).order_by('nome')
         else:
             self.fields['animal'].queryset = Animal.objects.none()
+
+# --- NOVO FORMULÁRIO: Editar Perfil ---
+class EditarPerfilForm(forms.ModelForm):
+    # Não precisamos redefinir campos de UserCreationForm como password
+    # Este formulário é diretamente para o modelo Perfil.
+    class Meta:
+        model = Perfil
+        # 'user' não precisa estar aqui, pois o perfil já está associado ao usuário logado
+        fields = (
+            'cpf',
+            'data_nascimento',
+            'genero',
+            'telefone',
+            'endereco',
+            'tipo_residencia',
+            'foto_perfil', # Inclua o novo campo de foto aqui
+        )
+        widgets = {
+            'data_nascimento': forms.DateInput(attrs={'type': 'date'}),
+        }
+        labels = {
+            'data_nascimento': 'Data de Nascimento',
+            'foto_perfil': 'Foto de Perfil',
+        }
