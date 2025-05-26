@@ -12,10 +12,31 @@ class Perfil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     cpf = models.CharField(max_length=14)
     data_nascimento = models.DateField()
-    genero = models.CharField(max_length=20)
+
+    # --- INÍCIO DA ALTERAÇÃO SOLICITADA ---
+    # Definição das opções para Gênero
+    GENERO_CHOICES = [
+        ('masculino', 'Masculino'),
+        ('feminino', 'Feminino'),
+        ('nao_binario', 'Não Binário'),
+        ('outro', 'Outro'),
+        ('prefiro_nao_dizer', 'Prefiro não dizer'),
+    ]
+    genero = models.CharField('Gênero', max_length=20, choices=GENERO_CHOICES)
+
     telefone = models.CharField(max_length=20)
     endereco = models.CharField(max_length=200)
-    tipo_residencia = models.CharField(max_length=30)
+
+    # Definição das opções para Tipo de Residência
+    TIPO_RESIDENCIA_CHOICES = [
+        ('casa', 'Casa'),
+        ('apartamento', 'Apartamento'),
+        ('condominio', 'Condomínio'),
+        ('sitio_fazenda', 'Sítio / Fazenda'),
+        ('outros', 'Outros'),
+    ]
+    tipo_residencia = models.CharField('Tipo de Residência', max_length=30, choices=TIPO_RESIDENCIA_CHOICES)
+    # --- FIM DA ALTERAÇÃO SOLICITADA ---
 
     class Meta:
         verbose_name = 'Perfil'
