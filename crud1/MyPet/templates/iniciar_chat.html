@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Conversa</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Estilos adicionais para o formulário de chat */
+        .chat-form-container {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+        .chat-form-container textarea {
+            width: 95%; /* Ajustado para deixar um pequeno padding */
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 120px;
+            box-sizing: border-box; /* Inclui padding e borda na largura */
+        }
+        .chat-form-container button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        .chat-form-container button:hover {
+            background-color: #218838;
+        }
+        .chat-form-container p {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container1">
+        <header>
+            <button class="back-button" onclick="window.location.href='{% url 'detalhes_animal' animal.id %}'">← Voltar</button>
+            <h1>Conversa com {{ dono_perfil.user.first_name }} sobre {{ animal.nome }}</h1>
+        </header>
+        <div class="content">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="chat-form-container">
+                <p>Envie uma mensagem inicial para **{{ dono_perfil.user.first_name }}** ({{ dono_perfil.user.username }}) sobre **{{ animal.nome }}**.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <label for="mensagem_inicial">Sua Mensagem:</label>
+                    <textarea id="mensagem_inicial" name="mensagem_inicial" placeholder="Escreva sua mensagem aqui..." required></textarea>
+                    <button type="submit">Enviar Mensagem</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

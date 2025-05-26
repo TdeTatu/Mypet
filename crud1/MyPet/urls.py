@@ -10,8 +10,10 @@ urlpatterns = [
     path('meuspets/', views.meuspets, name='meuspets'),
     path('acompanhamento/', views.acompanhamento, name='acompanhamento'),
     path('muralpets/', views.muralpets, name='muralpets'),
-    path('animal/', views.animal, name='animal'), # Verifique se essa URL é necessária/tem propósito claro
-    # --- NOVA URL: Editar Perfil ---
+    path('animal/', views.animal, name='animal'),
     path('editar_perfil/', views.editar_perfil, name='editar_perfil'),
-    # --- FIM DA NOVA URL ---
+    # --- NOVAS URLS ---
+    path('detalhes_animal/<int:animal_id>/', views.detalhes_animal, name='detalhes_animal'),
+    path('iniciar_chat/<int:dono_perfil_id>/<int:animal_id>/', views.iniciar_chat, name='iniciar_chat'),
+    # --- FIM DAS NOVAS URLS ---
 ]

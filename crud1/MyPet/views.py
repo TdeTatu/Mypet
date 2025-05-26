@@ -9,6 +9,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 
+# Import para o envio de e-mails (vamos usar um e-mail simples para simular o chat inicial)
+from django.core.mail import send_mail
+from django.conf import settings
+
 def cadastro(request):
     form = CadastroUsarioForm(request.POST or None)
     if request.method == 'POST':
@@ -192,26 +196,93 @@ def user_logout(request):
 # --- NOVA VIEW: Editar Perfil ---
 @login_required
 def editar_perfil(request):
-    # Garante que só usuários logados possam acessar
-    # Tenta pegar o Perfil do usuário logado, ou retorna um 404 se não existir
     perfil = get_object_or_404(Perfil, user=request.user)
 
     if request.method == 'POST':
-        # Se for um POST, tenta salvar o formulário com os novos dados e arquivos (para foto)
         form = EditarPerfilForm(request.POST, request.FILES, instance=perfil)
         if form.is_valid():
-            form.save() # Salva as alterações no perfil
+            form.save()
             messages.success(request, 'Perfil atualizado com sucesso!')
-            return redirect('telaprincipal') # Redireciona para a página principal
+            return redirect('telaprincipal')
         else:
             messages.error(request, 'Erro ao atualizar o perfil. Verifique os dados.')
-            print("Erros do formulário de edição de perfil:", form.errors) # Para depuração
+            print("Erros do formulário de edição de perfil:", form.errors)
     else:
-        # Se for um GET, preenche o formulário com os dados existentes do perfil
         form = EditarPerfilForm(instance=perfil)
 
     context = {
         'form': form,
-        'perfil': perfil # Passa o objeto perfil para o template, para exibir a foto atual
+        'perfil': perfil
     }
     return render(request, "editar_perfil.html", context)
+
+# --- NOVO: Detalhes do Animal e Perfil do Dono ---
+@login_required
+def detalhes_animal(request, animal_id):
+    # Pega o animal pelo ID, ou retorna 404 se não existir
+    animal = get_object_or_404(Animal, id=animal_id)
+    # Pega o perfil do dono do animal
+    dono_perfil = animal.owner
+
+    # Não permite que o dono do animal inicie um chat consigo mesmo
+    pode_iniciar_chat = (request.user != dono_perfil.user)
+
+    context = {
+        'animal': animal,
+        'dono_perfil': dono_perfil,
+        'pode_iniciar_chat': pode_iniciar_chat, # Variável para controlar a exibição do botão
+    }
+    return render(request, 'detalhes_animal.html', context)
+
+# --- NOVO: Iniciar Chat (Via E-mail Simplificado) ---
+@login_required
+def iniciar_chat(request, dono_perfil_id, animal_id):
+    # Garante que o perfil do dono existe
+    dono_perfil = get_object_or_404(Perfil, id=dono_perfil_id)
+    # Garante que o animal existe
+    animal = get_object_or_404(Animal, id=animal_id)
+
+    # Impede que o usuário converse consigo mesmo
+    if request.user == dono_perfil.user:
+        messages.error(request, "Você não pode iniciar um chat com seu próprio perfil.")
+        return redirect('detalhes_animal', animal_id=animal_id)
+
+    if request.method == 'POST':
+        mensagem = request.POST.get('mensagem_inicial', '').strip()
+        if mensagem:
+            assunto = f"Interesse em adoção do animal {animal.nome} - MyPet"
+            # Corpo do e-mail
+            corpo_email = f"""
+            Olá, {dono_perfil.user.first_name if dono_perfil.user.first_name else dono_perfil.user.username},
+
+            O usuário {request.user.first_name if request.user.first_name else request.user.username} (e-mail: {request.user.email})
+            demonstrou interesse em adotar seu pet, {animal.nome}.
+
+            Mensagem inicial do interessado:
+            "{mensagem}"
+
+            Você pode responder diretamente a este e-mail para continuar a conversa com {request.user.username}.
+
+            Atenciosamente,
+            Equipe MyPet
+            """
+            # Remetente do e-mail (configurado no settings.py)
+            email_from = settings.DEFAULT_FROM_EMAIL
+            # Destinatário (e-mail do dono do animal)
+            recipient_list = [dono_perfil.user.email]
+
+            try:
+                send_mail(assunto, corpo_email, email_from, recipient_list, fail_silently=False)
+                messages.success(request, f'Mensagem inicial enviada com sucesso para {dono_perfil.user.first_name if dono_perfil.user.first_name else dono_perfil.user.username} sobre {animal.nome}!')
+                return redirect('detalhes_animal', animal_id=animal.id)
+            except Exception as e:
+                messages.error(request, f'Ocorreu um erro ao enviar a mensagem: {e}')
+                print(f"Erro ao enviar e-mail: {e}")
+        else:
+            messages.error(request, 'A mensagem inicial não pode estar vazia.')
+
+    context = {
+        'dono_perfil': dono_perfil,
+        'animal': animal,
+    }
+    return render(request, 'iniciar_chat.html', context) # Renderiza o formulário de chat
