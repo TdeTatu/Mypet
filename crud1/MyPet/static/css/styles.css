@@ -1,98 +1,298 @@
 /* Estilos Gerais */
 body {
-  font-family: 'Montserrat', sans-serif;
-  background-color: #f0f0f0; /* Cor de fundo mais suave */
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-image: url('cat.webp'); /* Imagem de fundo */
-  background-position: center;
-  background-size: cover;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f0f0f0; /* Cor de fundo mais suave */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url('cat.webp'); /* Imagem de fundo */
+    background-position: center;
+    background-size: cover;
 }
 
 /* Container Centralizado (fundo branco pequeno) */
 .container, .container1 {
-  width: 100%;
-  max-width: 500px; /* Tamanho do fundo branco */
-  margin: 20px;
-  padding: 30px;
-  background-color: #fff; /* Fundo branco para o conteúdo */
-  border-radius: 15px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* Sombra para destacar o fundo */
-  text-align: center;
+    width: 100%;
+    max-width: 500px; /* Tamanho do fundo branco */
+    margin: 20px;
+    padding: 30px;
+    background-color: #fff; /* Fundo branco para o conteúdo */
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* Sombra para destacar o fundo */
+    text-align: center;
 }
 
 /* Cabeçalho */
 header h1 {
-  font-family: 'Montserrat', sans-serif; 
-  font-size: 2.5rem; 
-  color: #9932cc;
-  font-weight: 700; 
-  text-transform: uppercase; 
-  letter-spacing: 3px; 
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.1); 
-  margin-bottom: 20px; 
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2.5rem;
+    color: #9932cc;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
 }
 
 /* Botões */
 button {
-  background-color: #6200ea; /* Cor roxa mais suave */
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  margin-top: 10px;
-  text-transform: uppercase;
+    background-color: #6200ea; /* Cor roxa mais suave */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 10px;
+    text-transform: uppercase;
 }
 
 /* Efeito ao passar o mouse (hover) */
 button:hover {
-  background-color: #3700b3; /* Cor roxa mais escura ao passar o mouse */
-  transform: translateY(-2px);
+    background-color: #3700b3; /* Cor roxa mais escura ao passar o mouse */
+    transform: translateY(-2px);
 }
 
 /* Efeito ao clicar no botão */
 button:active {
-  background-color: #03dac5; /* Cor de fundo ao clicar */
-  transform: translateY(2px);
+    background-color: #03dac5; /* Cor de fundo ao clicar */
+    transform: translateY(2px);
 }
 
 /* Botão de Voltar */
 .back-button {
-  background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
-  font-size: 14px;
-  padding: 8px 16px;
-  border-radius: 5px;
+    background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 5px;
 }
 
 .back-button:hover {
-  background-color: #d45e1d;
+    background-color: #d45e1d;
 }
 
 /* Estilo dos inputs */
 input, select, textarea {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 16px;
-  font-family: 'Montserrat', sans-serif;
-  box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+    box-sizing: border-box;
 }
 
 input[type="file"] {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 /* Caixa de texto */
 textarea {
-  resize: vertical;
+    resize: vertical;
+}
+
+/* --- NOVOS ESTILOS E AJUSTES PARA O CHAT --- */
+
+/* Ajustes no cabeçalho do chat (dentro do container1) */
+.container1 header { /* Específico para o header dentro do container1 */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    background-color: #f0f0f0; /* Um fundo para o cabeçalho */
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Removido text-align: center; para o header */
+}
+
+.container1 header h1 { /* Específico para o h1 dentro do header do chat */
+    flex-grow: 1; /* Faz o título ocupar o espaço restante */
+    text-align: center;
+    margin: 0;
+    color: #333; /* Cor mais suave para o título do chat */
+    font-size: 1.8rem; /* Ajusta o tamanho da fonte */
+    letter-spacing: 1px; /* Diminui o espaçamento */
+    text-transform: none; /* Remove uppercase */
+    text-shadow: none; /* Remove text-shadow */
+}
+
+/* Mensagens do Django (flash messages) */
+.messages {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.messages li {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.messages .success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.messages .error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.messages .info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Estilos específicos para a tela de chat */
+.chat-details-container {
+    max-width: 800px; /* Aumentado para melhor visualização */
+    margin: 20px auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: left; /* Garante que o conteúdo interno não seja centralizado */
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.chat-header .profile-photo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #28a745; /* Cor verde para destaque */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-header h2 {
+    margin: 0;
+    font-size: 1.4em;
+    color: #333;
+}
+.chat-header p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9em;
+}
+.chat-header a {
+    text-decoration: none;
+    color: inherit;
+}
+.chat-header a:hover .profile-photo {
+    transform: scale(1.05);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.messages-area {
+    flex-grow: 1;
+    padding: 10px;
+    background-color: #e5ddd5; /* Fundo mais quente e suave para a área de mensagens (WhatsApp-like) */
+    border-radius: 8px;
+    max-height: 400px; /* Altura máxima para a área de mensagens */
+    overflow-y: auto; /* Adiciona scroll se as mensagens excederem a altura */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espaço entre as bolhas de mensagem */
+    padding-right: 5px; /* Para evitar que o scrollbar "corte" a bolha */
+}
+
+/* Estilo base para todas as bolhas de mensagem */
+.message-bubble {
+    max-width: 75%;
+    padding: 12px 18px; /* Aumenta um pouco o padding */
+    border-radius: 15px; /* Borda mais arredondada */
+    line-height: 1.4;
+    word-wrap: break-word;
+    font-size: 0.95em; /* Aumenta um pouco o tamanho da fonte */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Sombra sutil para "levantar" a bolha */
+    position: relative; /* Para o "bico" da bolha */
+}
+
+/* Estilo para mensagens ENVIADAS (pelo usuário logado) */
+.message-bubble.sent {
+    align-self: flex-end; /* Alinhamento à direita */
+    background-color: #dcf8c6; /* Verde claro vibrante - WhatsApp like */
+    color: #333;
+    margin-right: 5px; /* Pequena margem para não colar na borda */
+}
+
+/* Estilo para mensagens RECEBIDAS (pelo outro participante) */
+.message-bubble.received {
+    align-self: flex-start; /* Alinhamento à esquerda */
+    background-color: #ffffff; /* Fundo branco puro para recebidas */
+    color: #333;
+    border: 1px solid #e0e0e0; /* Borda sutil para separar do fundo */
+    margin-left: 5px; /* Pequena margem para não colar na borda */
+}
+
+/* Estilo para metadados da mensagem (data/hora e "por Você") */
+.message-meta {
+    font-size: 0.7em; /* Deixa a fonte dos metadados um pouco menor */
+    color: #888; /* Cor mais suave */
+    margin-top: 5px;
+    text-align: right; /* Alinha metadados à direita para mensagens enviadas */
+    opacity: 0.9; /* Deixa um pouco transparente */
+    display: block; /* Garante que o meta fique em sua própria linha */
+    padding-top: 3px; /* Espaçamento entre o texto e o meta */
+}
+
+.message-bubble.received .message-meta {
+    text-align: left; /* Alinha metadados à esquerda para mensagens recebidas */
+}
+
+/* Campo de input da mensagem */
+.chat-form {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.chat-form textarea {
+    flex-grow: 1;
+    padding: 12px; /* Aumenta o padding */
+    border: 1px solid #ccc; /* Borda mais suave */
+    border-radius: 8px; /* Borda mais arredondada */
+    resize: vertical;
+    min-height: 50px; /* Altura mínima para o campo de texto */
+    font-size: 1em;
+}
+
+.chat-form button {
+    background-color: #28a745; /* Verde de envio */
+    color: white;
+    padding: 12px 25px; /* Aumenta o padding do botão */
+    border: none;
+    border-radius: 8px; /* Mais arredondado */
+    cursor: pointer;
+    font-size: 1.1em; /* Fonte um pouco maior */
+    transition: background-color 0.3s ease;
+}
+
+.chat-form button:hover {
+    background-color: #218838;
 }

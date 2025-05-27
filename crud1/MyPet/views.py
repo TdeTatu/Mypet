@@ -3,13 +3,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .forms import CadastroUsarioForm, AnimalModelForm, VisitaForm, EditarPerfilForm # Importe EditarPerfilForm
-from .models import Animal, Perfil, Visita
+from .forms import CadastroUsarioForm, AnimalModelForm, VisitaForm, EditarPerfilForm, MensagemForm # Importe MensagemForm
+from .models import Animal, Perfil, Visita, Conversa, Mensagem # Importe os novos modelos
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
+from django.db.models import Q # Para consultas complexas
 
-# Import para o envio de e-mails (vamos usar um e-mail simples para simular o chat inicial)
+# Import para o envio de e-mails (ainda usado para notificação)
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -216,12 +217,10 @@ def editar_perfil(request):
     }
     return render(request, "editar_perfil.html", context)
 
-# --- NOVO: Detalhes do Animal e Perfil do Dono ---
+# --- NOVO: Detalhes do Animal e Perfil do Dono (Permite iniciar chat real) ---
 @login_required
 def detalhes_animal(request, animal_id):
-    # Pega o animal pelo ID, ou retorna 404 se não existir
     animal = get_object_or_404(Animal, id=animal_id)
-    # Pega o perfil do dono do animal
     dono_perfil = animal.owner
 
     # Não permite que o dono do animal inicie um chat consigo mesmo
@@ -230,59 +229,215 @@ def detalhes_animal(request, animal_id):
     context = {
         'animal': animal,
         'dono_perfil': dono_perfil,
-        'pode_iniciar_chat': pode_iniciar_chat, # Variável para controlar a exibição do botão
+        'pode_iniciar_chat': pode_iniciar_chat,
     }
     return render(request, 'detalhes_animal.html', context)
 
-# --- NOVO: Iniciar Chat (Via E-mail Simplificado) ---
+
+# --- ATUALIZADO: Iniciar Chat (Agora cria uma Conversa e Mensagem) ---
 @login_required
 def iniciar_chat(request, dono_perfil_id, animal_id):
-    # Garante que o perfil do dono existe
+    solicitante_perfil = get_object_or_404(Perfil, user=request.user)
     dono_perfil = get_object_or_404(Perfil, id=dono_perfil_id)
-    # Garante que o animal existe
     animal = get_object_or_404(Animal, id=animal_id)
 
-    # Impede que o usuário converse consigo mesmo
-    if request.user == dono_perfil.user:
-        messages.error(request, "Você não pode iniciar um chat com seu próprio perfil.")
-        return redirect('detalhes_animal', animal_id=animal_id)
+    # Impede que o usuário converse consigo mesmo ou com seu próprio pet
+    if solicitante_perfil == dono_perfil:
+        messages.error(request, "Você não pode iniciar um chat com seu próprio perfil ou sobre seu próprio pet.")
+        return redirect('detalhes_animal', animal_id=animal.id)
+
+    # Verifica se já existe uma conversa ativa para este solicitante, dono e animal
+    conversa_existente = Conversa.objects.filter(
+        (Q(solicitante=solicitante_perfil) & Q(dono=dono_perfil)) |
+        (Q(solicitante=dono_perfil) & Q(dono=solicitante_perfil)),
+        animal=animal,
+        ativa=True
+    ).first()
 
     if request.method == 'POST':
-        mensagem = request.POST.get('mensagem_inicial', '').strip()
-        if mensagem:
-            assunto = f"Interesse em adoção do animal {animal.nome} - MyPet"
-            # Corpo do e-mail
+        # Instancia o formulário com os dados do POST
+        form = MensagemForm(request.POST) 
+        if form.is_valid():
+            conteudo_mensagem = form.cleaned_data['conteudo']
+
+            if not conversa_existente:
+                # Se não existe, cria uma nova conversa
+                conversa = Conversa.objects.create(
+                    solicitante=solicitante_perfil,
+                    dono=dono_perfil,
+                    animal=animal
+                )
+                messages.info(request, f"Nova conversa iniciada com {dono_perfil.user.first_name if dono_perfil.user.first_name else dono_perfil.user.username} sobre {animal.nome}.")
+            else:
+                conversa = conversa_existente
+
+            # Cria a primeira mensagem
+            Mensagem.objects.create(
+                conversa=conversa,
+                remetente=solicitante_perfil,
+                conteudo=conteudo_mensagem
+            )
+
+            # Notifica o dono do animal por e-mail (opcional, mas boa prática)
+            assunto = f"Nova Mensagem sobre {animal.nome} - MyPet"
             corpo_email = f"""
             Olá, {dono_perfil.user.first_name if dono_perfil.user.first_name else dono_perfil.user.username},
 
-            O usuário {request.user.first_name if request.user.first_name else request.user.username} (e-mail: {request.user.email})
-            demonstrou interesse em adotar seu pet, {animal.nome}.
+            Você recebeu uma nova mensagem de {solicitante_perfil.user.first_name if solicitante_perfil.user.first_name else solicitante_perfil.user.username}
+            sobre o animal {animal.nome}.
 
-            Mensagem inicial do interessado:
-            "{mensagem}"
-
-            Você pode responder diretamente a este e-mail para continuar a conversa com {request.user.username}.
+            Para ver a mensagem e responder, acesse:
+            {request.build_absolute_uri(f'/detalhes_chat/{conversa.id}/')}
 
             Atenciosamente,
             Equipe MyPet
             """
-            # Remetente do e-mail (configurado no settings.py)
-            email_from = settings.DEFAULT_FROM_EMAIL
-            # Destinatário (e-mail do dono do animal)
-            recipient_list = [dono_perfil.user.email]
-
             try:
-                send_mail(assunto, corpo_email, email_from, recipient_list, fail_silently=False)
+                send_mail(assunto, corpo_email, settings.DEFAULT_FROM_EMAIL, [dono_perfil.user.email], fail_silently=False)
                 messages.success(request, f'Mensagem inicial enviada com sucesso para {dono_perfil.user.first_name if dono_perfil.user.first_name else dono_perfil.user.username} sobre {animal.nome}!')
-                return redirect('detalhes_animal', animal_id=animal.id)
             except Exception as e:
-                messages.error(request, f'Ocorreu um erro ao enviar a mensagem: {e}')
-                print(f"Erro ao enviar e-mail: {e}")
+                messages.warning(request, f'Mensagem enviada, mas houve um erro ao enviar a notificação por e-mail: {e}')
+                print(f"Erro ao enviar e-mail de notificação: {e}")
+
+            return redirect('detalhes_chat', conversa_id=conversa.id)
         else:
-            messages.error(request, 'A mensagem inicial não pode estar vazia.')
+            messages.error(request, 'A mensagem não pode estar vazia.')
+            # A chave é re-renderizar a página com o formulário que contém os erros
+            # e os dados submetidos (se houver), então passamos o form para o contexto.
+            context = {
+                'dono_perfil': dono_perfil,
+                'animal': animal,
+                'form': form, # Passa o formulário inválido de volta ao template
+                'conversa_existente': conversa_existente
+            }
+            return render(request, 'iniciar_chat.html', context)
+    else:
+        # Se for GET, prepara o formulário para a primeira mensagem
+        form = MensagemForm()
 
     context = {
         'dono_perfil': dono_perfil,
         'animal': animal,
+        'form': form,
+        'conversa_existente': conversa_existente # Para exibir uma nota se já existe conversa
     }
-    return render(request, 'iniciar_chat.html', context) # Renderiza o formulário de chat
+    return render(request, 'iniciar_chat.html', context)
+
+# --- NOVO: Listar Chats/Solicitações ---
+@login_required
+def lista_chats(request):
+    perfil_usuario = get_object_or_404(Perfil, user=request.user)
+
+    # Conversas onde o usuário é o solicitante OU o dono
+    # Usando Q para combinar as condições OR
+    conversas = Conversa.objects.filter(
+        Q(solicitante=perfil_usuario) | Q(dono=perfil_usuario),
+        ativa=True # Apenas conversas ativas
+    ).order_by('-modificado') # Ordena pelas mais recentes
+
+    # Marcar mensagens não lidas
+    for conversa in conversas:
+        # Verifica se há mensagens não lidas enviadas pelo *outro* participante
+        # para o perfil_usuario logado.
+        conversa.tem_nao_lidas = Mensagem.objects.filter(
+            conversa=conversa,
+            lida=False
+        ).exclude(remetente=perfil_usuario).exists()
+
+    context = {
+        'conversas': conversas,
+        'perfil_usuario': perfil_usuario,
+    }
+    return render(request, 'lista_chats.html', context)
+
+# --- NOVO: Detalhes do Chat e Resposta ---
+@login_required
+def detalhes_chat(request, conversa_id):
+    perfil_usuario = get_object_or_404(Perfil, user=request.user)
+    conversa = get_object_or_404(Conversa, id=conversa_id)
+
+    # Garante que apenas os participantes da conversa possam acessá-la
+    if not (conversa.solicitante == perfil_usuario or conversa.dono == perfil_usuario):
+        messages.error(request, "Você não tem permissão para acessar esta conversa.")
+        return redirect('lista_chats')
+
+    # Marca as mensagens não lidas do *outro* participante como lidas
+    # Se o usuário logado é o dono, marca as mensagens do solicitante como lidas
+    if conversa.dono == perfil_usuario:
+        conversa.mensagens.filter(remetente=conversa.solicitante, lida=False).update(lida=True)
+    # Se o usuário logado é o solicitante, marca as mensagens do dono como lidas
+    elif conversa.solicitante == perfil_usuario:
+        conversa.mensagens.filter(remetente=conversa.dono, lida=False).update(lida=True)
+
+    mensagens = conversa.mensagens.all() # Todas as mensagens da conversa
+
+    if request.method == 'POST':
+        form = MensagemForm(request.POST)
+        if form.is_valid():
+            nova_mensagem = form.save(commit=False)
+            nova_mensagem.conversa = conversa
+            nova_mensagem.remetente = perfil_usuario
+            nova_mensagem.save()
+            messages.success(request, 'Mensagem enviada com sucesso!')
+
+            # Opcional: Notificar o outro participante por e-mail sobre a nova mensagem
+            # Identifica o destinatário
+            destinatario_perfil = conversa.solicitante if perfil_usuario == conversa.dono else conversa.dono
+            assunto_notificacao = f"Nova resposta na conversa sobre {conversa.animal.nome} - MyPet"
+            corpo_notificacao = f"""
+            Olá, {destinatario_perfil.user.first_name if destinatario_perfil.user.first_name else destinatario_perfil.user.username},
+
+            Você recebeu uma nova mensagem de {perfil_usuario.user.first_name if perfil_usuario.user.first_name else perfil_usuario.user.username}
+            na conversa sobre o animal {conversa.animal.nome}.
+
+            Mensagem: "{nova_mensagem.conteudo}"
+
+            Para ver a conversa completa e responder, acesse:
+            {request.build_absolute_uri(f'/detalhes_chat/{conversa.id}/')}
+
+            Atenciosamente,
+            Equipe MyPet
+            """
+            try:
+                send_mail(assunto_notificacao, corpo_notificacao, settings.DEFAULT_FROM_EMAIL, [destinatario_perfil.user.email], fail_silently=False)
+            except Exception as e:
+                messages.warning(request, f'Mensagem enviada, mas houve um erro ao enviar a notificação por e-mail: {e}')
+                print(f"Erro ao enviar e-mail de notificação de resposta: {e}")
+
+            return redirect('detalhes_chat', conversa_id=conversa.id) # Redireciona para atualizar as mensagens
+        else:
+            messages.error(request, 'Erro ao enviar mensagem.')
+    else:
+        form = MensagemForm()
+
+    # Identifica o outro participante da conversa para exibir seu perfil
+    if conversa.solicitante == perfil_usuario:
+        outro_participante = conversa.dono
+    else:
+        outro_participante = conversa.solicitante
+
+    context = {
+        'conversa': conversa,
+        'mensagens': mensagens,
+        'form': form,
+        'perfil_usuario': perfil_usuario, # Perfil do usuário logado
+        'outro_participante': outro_participante, # Perfil do outro usuário na conversa
+    }
+    return render(request, 'detalhes_chat.html', context)
+
+
+# --- NOVO: Visualizar Perfil Público de Outro Usuário ---
+@login_required
+def detalhes_perfil_publico(request, perfil_id):
+    # Apenas visualiza perfis que não sejam o do usuário logado
+    perfil = get_object_or_404(Perfil, id=perfil_id)
+
+    # Impede que o usuário veja seu próprio perfil por esta URL (use editar_perfil para isso)
+    if perfil.user == request.user:
+        messages.info(request, "Você está visualizando seu próprio perfil. Use 'Editar Perfil' para fazer alterações.")
+        return redirect('editar_perfil') # Redireciona para a página de edição se for o próprio perfil
+
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'detalhes_perfil_publico.html', context)

@@ -15,5 +15,8 @@ urlpatterns = [
     # --- NOVAS URLS ---
     path('detalhes_animal/<int:animal_id>/', views.detalhes_animal, name='detalhes_animal'),
     path('iniciar_chat/<int:dono_perfil_id>/<int:animal_id>/', views.iniciar_chat, name='iniciar_chat'),
+    path('chats/', views.lista_chats, name='lista_chats'), # Nova URL para o menu de chats
+    path('detalhes_chat/<int:conversa_id>/', views.detalhes_chat, name='detalhes_chat'), # Nova URL para o chat específico
+    path('perfil_publico/<int:perfil_id>/', views.detalhes_perfil_publico, name='detalhes_perfil_publico'), # Nova URL para perfil público
     # --- FIM DAS NOVAS URLS ---
 ]

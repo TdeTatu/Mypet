@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Animal, Perfil, Visita # Importe Perfil, Visita
+from .models import Animal, Perfil, Visita, Conversa, Mensagem # Importe os novos modelos
 
 class CadastroUsarioForm(UserCreationForm):
     nome = forms.CharField(label='Nome Completo', max_length=255)
@@ -97,11 +97,8 @@ class VisitaForm(forms.ModelForm):
 
 # --- NOVO FORMULÁRIO: Editar Perfil ---
 class EditarPerfilForm(forms.ModelForm):
-    # Não precisamos redefinir campos de UserCreationForm como password
-    # Este formulário é diretamente para o modelo Perfil.
     class Meta:
         model = Perfil
-        # 'user' não precisa estar aqui, pois o perfil já está associado ao usuário logado
         fields = (
             'cpf',
             'data_nascimento',
@@ -117,4 +114,16 @@ class EditarPerfilForm(forms.ModelForm):
         labels = {
             'data_nascimento': 'Data de Nascimento',
             'foto_perfil': 'Foto de Perfil',
+        }
+
+# --- NOVO FORMULÁRIO: Enviar Mensagem ---
+class MensagemForm(forms.ModelForm):
+    class Meta:
+        model = Mensagem
+        fields = ['conteudo']
+        widgets = {
+            'conteudo': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Escreva sua mensagem aqui...'}),
+        }
+        labels = {
+            'conteudo': 'Mensagem',
         }

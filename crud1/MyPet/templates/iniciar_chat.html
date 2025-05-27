@@ -42,6 +42,14 @@
             margin-bottom: 15px;
             font-size: 1.1em;
         }
+        /* Estilo para mensagens de erro do formulário */
+        .errorlist {
+            list-style: none;
+            padding: 0;
+            margin: -10px 0 10px 0;
+            color: red;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -61,10 +69,22 @@
 
             <div class="chat-form-container">
                 <p>Envie uma mensagem inicial para **{{ dono_perfil.user.first_name }}** ({{ dono_perfil.user.username }}) sobre **{{ animal.nome }}**.</p>
-                <form method="post">
+                <form method="post" action="{% url 'iniciar_chat' dono_perfil.id animal.id %}">
                     {% csrf_token %}
-                    <label for="mensagem_inicial">Sua Mensagem:</label>
-                    <textarea id="mensagem_inicial" name="mensagem_inicial" placeholder="Escreva sua mensagem aqui..." required></textarea>
+                    <label for="{{ form.conteudo.id_for_label }}">Sua Mensagem:</label>
+                    
+                    {# CORREÇÃO AQUI: Use form.conteudo para renderizar o campo corretamente #}
+                    {{ form.conteudo }} 
+
+                    {# Exiba erros específicos do campo 'conteudo' #}
+                    {% if form.conteudo.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.conteudo.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
                     <button type="submit">Enviar Mensagem</button>
                 </form>
             </div>

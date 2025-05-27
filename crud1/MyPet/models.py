@@ -1,7 +1,7 @@
 # MyPet/models.py
 
 from django.db import models
-from stdimage.models import StdImageField # Importe StdImageField
+from stdimage.models import StdImageField
 from django.contrib.auth.models import User
 
 # SIGNALS
@@ -54,8 +54,8 @@ class Perfil(models.Model):
         return f"Perfil de {self.user.username}"
 
 class Base(models.Model):
-    criado = models.DateField('Data de criação', auto_now_add=True)
-    modificado = models.DateField('Data de atualização', auto_now=True)
+    criado = models.DateTimeField('Data de criação', auto_now_add=True) # Mude de DateField para DateTimeField
+    modificado = models.DateTimeField('Data de atualização', auto_now=True) # Mude de DateField para DateTimeField
     ativo = models.BooleanField('Ativo?', default=True)
 
     class Meta:
@@ -139,3 +139,37 @@ class Visita(Base):
 
     def __str__(self):
         return f"Visita para {self.animal.nome} em {self.data_visita} às {self.hora_visita} (Solicitante: {self.solicitante.user.username})"
+
+# --- NOVOS MODELOS PARA CHAT/MENSAGENS ---
+
+class Conversa(Base):
+    # O solicitante é quem inicia a conversa (interessado na adoção)
+    solicitante = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='conversas_iniciadas', verbose_name='Solicitante')
+    # O dono é o perfil do dono do animal
+    dono = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='conversas_recebidas', verbose_name='Dono do Animal')
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, verbose_name='Animal Referência')
+    ativa = models.BooleanField('Conversa Ativa?', default=True) # Para desativar conversas, se necessário
+
+    class Meta:
+        verbose_name = 'Conversa de Adoção'
+        verbose_name_plural = 'Conversas de Adoção'
+        # Garante que não haja conversas duplicadas entre os mesmos dois usuários sobre o mesmo animal
+        unique_together = ('solicitante', 'dono', 'animal')
+        ordering = ['-modificado'] # Conversas mais recentes primeiro
+
+    def __str__(self):
+        return f"Conversa entre {self.solicitante.user.username} e {self.dono.user.username} sobre {self.animal.nome}"
+
+class Mensagem(models.Model):
+    conversa = models.ForeignKey('Conversa', on_delete=models.CASCADE, related_name='mensagens')
+    remetente = models.ForeignKey('Perfil', on_delete=models.CASCADE)
+    conteudo = models.TextField()
+    data_envio = models.DateTimeField(auto_now_add=True) # << GARANTA QUE É DateTimeField
+    lida = models.BooleanField(default=False)
+    
+    
+    class Meta:
+        ordering = ['data_envio']
+
+    def __str__(self):
+        return f"Mensagem de {self.remetente.user.username} em {self.data_envio.strftime('%d/%m/%Y %H:%M')}"

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat com {{ outro_participante.user.first_name }} sobre {{ conversa.animal.nome }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container1"> {# Este é o container principal que definirá a largura geral #}
+        <header class="chat-main-header"> {# Adicionado uma classe para estilização específica do cabeçalho do chat #}
+            <button class="back-button" onclick="window.location.href='{% url 'lista_chats' %}'">← Voltar</button>
+
+            {# NOVA ESTRUTURA PARA O TÍTULO E A FOTO #}
+            <div class="header-content">
+                <a href="{% url 'detalhes_perfil_publico' outro_participante.id %}" title="Ver perfil de {{ outro_participante.user.first_name }}">
+                    {% if outro_participante.foto_perfil %}
+                        <img src="{{ outro_participante.foto_perfil.thumb.url }}" alt="Foto de {{ outro_participante.user.first_name }}" class="profile-photo-header"> {# Nova classe para a foto no header #}
+                    {% else %}
+                        <img src="{% static 'images/default_profile.png' %}" alt="Foto Padrão" class="profile-photo-header"> {# Nova classe para a foto no header #}
+                    {% endif %}
+                </a>
+                <div>
+                    <h1>Conversa com {{ outro_participante.user.first_name }}</h1>
+                    <p class="animal-info">Sobre: {{ conversa.animal.nome }} ({{ conversa.animal.raca }} - {{ conversa.animal.get_sexo_display }})</p>
+                </div>
+            </div>
+            {# FIM DA NOVA ESTRUTURA #}
+
+        </header>
+        <div class="content">
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="chat-details-container">
+                {# REMOVIDO: o antigo chat-header que duplicava informações #}
+                {# O CONTEÚDO AGORA COMEÇA DIRETAMENTE COM A ÁREA DE MENSAGENS #}
+
+                <div class="messages-area">
+                    {% if mensagens %}
+                        {% for mensagem in mensagens %}
+                            <div class="message-bubble {% if mensagem.remetente == perfil_usuario %}sent{% else %}received{% endif %}">
+                                {{ mensagem.conteudo }}
+                                <div class="message-meta">
+                                    {{ mensagem.data_envio|date:"d/m/Y H:i" }} por {% if mensagem.remetente == perfil_usuario %}Você{% else %}{{ mensagem.remetente.user.first_name }}{% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="text-align: center; color: #888;">Nenhuma mensagem nesta conversa ainda.</p>
+                    {% endif %}
+                </div>
+
+                <div class="chat-form">
+                    <form method="post" style="display: flex; width: 100%; gap: 10px;">
+                        {% csrf_token %}
+                        {{ form.conteudo }}
+                        <button type="submit">Enviar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
