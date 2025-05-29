@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'MyPet',
     'bootstrap4',
     'stdimage',
-    ]
+]
 
 
 MIDDLEWARE = [
@@ -134,8 +134,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/' #usado durante dev
 #STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') #usado durante prod
-MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Media Files (user-uploaded files)
+MEDIA_URL = '/media/' # URL para servir arquivos de mídia
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # Diretório onde os arquivos de mídia serão armazenados
 
 #CONFIGURAÇÕES DE EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

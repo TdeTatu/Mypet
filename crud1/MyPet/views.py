@@ -255,10 +255,22 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
     ).first()
 
     if request.method == 'POST':
-        # Instancia o formulário com os dados do POST
-        form = MensagemForm(request.POST) 
+        # IMPORTANTE: Incluir request.FILES para lidar com uploads de arquivos
+        form = MensagemForm(request.POST, request.FILES) 
         if form.is_valid():
-            conteudo_mensagem = form.cleaned_data['conteudo']
+            conteudo = form.cleaned_data.get('conteudo')
+            media_file = form.cleaned_data.get('media_file')
+
+            # Uma mensagem deve ter conteúdo OU um arquivo de mídia
+            if not conteudo and not media_file:
+                messages.error(request, "A mensagem não pode ser vazia. Digite algo ou anexe uma foto/vídeo.")
+                context = {
+                    'dono_perfil': dono_perfil,
+                    'animal': animal,
+                    'form': form,
+                    'conversa_existente': conversa_existente
+                }
+                return render(request, 'iniciar_chat.html', context)
 
             if not conversa_existente:
                 # Se não existe, cria uma nova conversa
@@ -271,12 +283,25 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
             else:
                 conversa = conversa_existente
 
-            # Cria a primeira mensagem
-            Mensagem.objects.create(
+            # Cria a nova mensagem
+            nova_mensagem = Mensagem(
                 conversa=conversa,
                 remetente=solicitante_perfil,
-                conteudo=conteudo_mensagem
+                conteudo=conteudo
             )
+
+            if media_file:
+                nova_mensagem.media_file = media_file
+                # Determinar o tipo de mídia (básico, pode ser melhorado com bibliotecas como python-magic)
+                if media_file.content_type.startswith('image'):
+                    nova_mensagem.media_type = 'image'
+                elif media_file.content_type.startswith('video'):
+                    nova_mensagem.media_type = 'video'
+                else:
+                    # Tratar outros tipos, ou ignorar, ou definir como 'other'
+                    nova_mensagem.media_type = None # Ou 'other' dependendo da sua regra
+
+            nova_mensagem.save()
 
             # Notifica o dono do animal por e-mail (opcional, mas boa prática)
             assunto = f"Nova Mensagem sobre {animal.nome} - MyPet"
@@ -301,9 +326,9 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
 
             return redirect('detalhes_chat', conversa_id=conversa.id)
         else:
-            messages.error(request, 'A mensagem não pode estar vazia.')
+            messages.error(request, 'Erro ao enviar mensagem. Verifique os dados do formulário.')
+            print("Erros do formulário de mensagem em iniciar_chat:", form.errors)
             # A chave é re-renderizar a página com o formulário que contém os erros
-            # e os dados submetidos (se houver), então passamos o form para o contexto.
             context = {
                 'dono_perfil': dono_perfil,
                 'animal': animal,
@@ -372,11 +397,43 @@ def detalhes_chat(request, conversa_id):
     mensagens = conversa.mensagens.all() # Todas as mensagens da conversa
 
     if request.method == 'POST':
-        form = MensagemForm(request.POST)
+        # IMPORTANTE: Incluir request.FILES para lidar com uploads de arquivos
+        form = MensagemForm(request.POST, request.FILES) 
         if form.is_valid():
-            nova_mensagem = form.save(commit=False)
-            nova_mensagem.conversa = conversa
-            nova_mensagem.remetente = perfil_usuario
+            conteudo = form.cleaned_data.get('conteudo')
+            media_file = form.cleaned_data.get('media_file')
+
+            # Uma mensagem deve ter conteúdo OU um arquivo de mídia
+            if not conteudo and not media_file:
+                messages.error(request, "A mensagem não pode ser vazia. Digite algo ou anexe uma foto/vídeo.")
+                # Se a mensagem é inválida, re-renderiza a página com o formulário e os erros
+                context = {
+                    'conversa': conversa,
+                    'mensagens': mensagens,
+                    'form': form, # Passa o formulário com os erros
+                    'perfil_usuario': perfil_usuario,
+                    'outro_participante': conversa.solicitante if perfil_usuario == conversa.dono else conversa.dono,
+                }
+                return render(request, 'detalhes_chat.html', context)
+
+
+            nova_mensagem = Mensagem(
+                conversa=conversa,
+                remetente=perfil_usuario,
+                conteudo=conteudo
+            )
+
+            if media_file:
+                nova_mensagem.media_file = media_file
+                # Determinar o tipo de mídia (básico, pode ser melhorado com bibliotecas)
+                if media_file.content_type.startswith('image'):
+                    nova_mensagem.media_type = 'image'
+                elif media_file.content_type.startswith('video'):
+                    nova_mensagem.media_type = 'video'
+                else:
+                    # Pode definir como 'other' ou deixar nulo se não for imagem/vídeo
+                    nova_mensagem.media_type = None 
+
             nova_mensagem.save()
             messages.success(request, 'Mensagem enviada com sucesso!')
 
@@ -389,8 +446,6 @@ def detalhes_chat(request, conversa_id):
 
             Você recebeu uma nova mensagem de {perfil_usuario.user.first_name if perfil_usuario.user.first_name else perfil_usuario.user.username}
             na conversa sobre o animal {conversa.animal.nome}.
-
-            Mensagem: "{nova_mensagem.conteudo}"
 
             Para ver a conversa completa e responder, acesse:
             {request.build_absolute_uri(f'/detalhes_chat/{conversa.id}/')}
@@ -406,7 +461,23 @@ def detalhes_chat(request, conversa_id):
 
             return redirect('detalhes_chat', conversa_id=conversa.id) # Redireciona para atualizar as mensagens
         else:
-            messages.error(request, 'Erro ao enviar mensagem.')
+            messages.error(request, 'Erro ao enviar mensagem. Verifique os dados do formulário.')
+            print("Erros do formulário de mensagem em detalhes_chat:", form.errors)
+            # Se o formulário for inválido, re-renderiza a página com o formulário e os erros
+            # Identifica o outro participante da conversa para exibir seu perfil
+            if conversa.solicitante == perfil_usuario:
+                outro_participante = conversa.dono
+            else:
+                outro_participante = conversa.solicitante
+
+            context = {
+                'conversa': conversa,
+                'mensagens': mensagens, # Para manter as mensagens existentes
+                'form': form, # Passa o formulário com os erros de volta
+                'perfil_usuario': perfil_usuario,
+                'outro_participante': outro_participante,
+            }
+            return render(request, 'detalhes_chat.html', context)
     else:
         form = MensagemForm()
 

@@ -88,9 +88,7 @@ input, select, textarea {
     box-sizing: border-box;
 }
 
-input[type="file"] {
-    font-size: 14px;
-}
+/* Removido o estilo direto para input[type="file"] para usar o wrapper e label */
 
 /* Caixa de texto */
 textarea {
@@ -100,7 +98,7 @@ textarea {
 /* --- NOVOS ESTILOS E AJUSTES PARA O CHAT --- */
 
 /* Ajustes no cabeçalho do chat (dentro do container1) */
-.container1 header { /* Específico para o header dentro do container1 */
+.chat-main-header { /* Específico para o header principal do chat */
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -112,15 +110,39 @@ textarea {
     /* Removido text-align: center; para o header */
 }
 
-.container1 header h1 { /* Específico para o h1 dentro do header do chat */
-    flex-grow: 1; /* Faz o título ocupar o espaço restante */
-    text-align: center;
+/* Estilos para a foto de perfil no cabeçalho do chat */
+.profile-photo-header {
+    width: 50px; /* Tamanho menor para o cabeçalho */
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #6200ea; /* Cor da borda da foto de perfil */
+    margin-right: 15px; /* Espaço entre a foto e o texto */
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1; /* Ocupa o espaço restante para alinhar o texto corretamente */
+}
+
+.header-content div {
+    text-align: left; /* Alinha o texto à esquerda dentro do seu div */
+}
+
+.chat-main-header h1 { /* Específico para o h1 dentro do header do chat */
     margin: 0;
     color: #333; /* Cor mais suave para o título do chat */
-    font-size: 1.8rem; /* Ajusta o tamanho da fonte */
+    font-size: 1.5rem; /* Ajusta o tamanho da fonte */
     letter-spacing: 1px; /* Diminui o espaçamento */
     text-transform: none; /* Remove uppercase */
     text-shadow: none; /* Remove text-shadow */
+}
+
+.animal-info {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 5px;
 }
 
 /* Mensagens do Django (flash messages) */
@@ -169,7 +191,7 @@ textarea {
     text-align: left; /* Garante que o conteúdo interno não seja centralizado */
 }
 
-.chat-header {
+.chat-header { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
     display: flex;
     align-items: center;
     gap: 15px;
@@ -178,7 +200,7 @@ textarea {
     border-bottom: 1px solid #eee;
 }
 
-.chat-header .profile-photo {
+.chat-header .profile-photo { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
     width: 80px;
     height: 80px;
     object-fit: cover;
@@ -187,21 +209,21 @@ textarea {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.chat-header h2 {
+.chat-header h2 { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
     margin: 0;
     font-size: 1.4em;
     color: #333;
 }
-.chat-header p {
+.chat-header p { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
     margin: 0;
     color: #666;
     font-size: 0.9em;
 }
-.chat-header a {
+.chat-header a { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
     text-decoration: none;
     color: inherit;
 }
-.chat-header a:hover .profile-photo {
+.chat-header a:hover .profile-photo { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
     transform: scale(1.05);
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
@@ -295,4 +317,58 @@ textarea {
 
 .chat-form button:hover {
     background-color: #218838;
+}
+
+/* Estilos para o input de arquivo e seu label customizado */
+.file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block; /* Para que o wrapper não ocupe toda a largura */
+    flex-shrink: 0; /* Impede que o wrapper encolha */
+}
+
+.file-input-wrapper input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box; /* Garante que padding e border não adicionem largura */
+}
+
+.file-input-label {
+    background-color: #007bff; /* Azul padrão, pode ser ajustado */
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    white-space: nowrap; /* Impede que o texto quebre */
+}
+
+.file-input-label:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para imagens e vídeos dentro das mensagens */
+.chat-media-image, .chat-media-video {
+    max-width: 100%; /* Garante que a mídia não exceda a largura da bolha */
+    height: auto; /* Mantém a proporção */
+    border-radius: 8px; /* Bordas arredondadas para a mídia */
+    margin-top: 5px; /* Espaço entre o texto e a mídia */
+    display: block; /* Garante que ocupe sua própria linha */
+}
+
+.chat-media-video {
+    width: 100%; /* Garante que o vídeo preencha a largura da bolha */
+}
+
+/* Estilos para o indicador de mensagem lida */
+.read-receipt {
+    margin-left: 5px; /* Espaço entre a hora e o indicador */
+    color: #4CAF50; /* Verde para indicar que foi lido */
+    font-weight: bold;
 }

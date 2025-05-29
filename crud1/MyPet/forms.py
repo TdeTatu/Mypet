@@ -118,12 +118,18 @@ class EditarPerfilForm(forms.ModelForm):
 
 # --- NOVO FORMULÁRIO: Enviar Mensagem ---
 class MensagemForm(forms.ModelForm):
+    # Conteúdo agora é opcional, pois a mensagem pode ser só mídia
+    conteudo = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Digite sua mensagem...'}),
+        required=False # Torna o campo de texto opcional
+    )
+    # Adicione o campo de upload de arquivo
+    media_file = forms.FileField(
+        label='Anexar mídia (foto ou vídeo)',
+        required=False, # Torna o campo de mídia opcional
+        widget=forms.FileInput(attrs={'accept': 'image/*,video/*'}) # Filtra tipos de arquivo
+    )
+
     class Meta:
         model = Mensagem
-        fields = ['conteudo']
-        widgets = {
-            'conteudo': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Escreva sua mensagem aqui...'}),
-        }
-        labels = {
-            'conteudo': 'Mensagem',
-        }
+        fields = ['conteudo', 'media_file'] # Inclua o novo campo

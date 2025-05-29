@@ -163,13 +163,41 @@ class Conversa(Base):
 class Mensagem(models.Model):
     conversa = models.ForeignKey('Conversa', on_delete=models.CASCADE, related_name='mensagens')
     remetente = models.ForeignKey('Perfil', on_delete=models.CASCADE)
-    conteudo = models.TextField()
-    data_envio = models.DateTimeField(auto_now_add=True) # << GARANTA QUE É DateTimeField
+    conteudo = models.TextField(blank=True, null=True) # Conteúdo da mensagem pode ser nulo se for só mídia
+    data_envio = models.DateTimeField(auto_now_add=True)
     lida = models.BooleanField(default=False)
-    
-    
+
+    # NOVO CAMPO: Para mídias (fotos e vídeos)
+    media_file = models.FileField(upload_to='chat_media/', blank=True, null=True)
+
+    # NOVO CAMPO: Para diferenciar o tipo de mídia no template (opcional, mas útil)
+    MEDIA_TYPE_CHOICES = [
+        ('image', 'Imagem'),
+        ('video', 'Vídeo'),
+    ]
+    media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES, blank=True, null=True)
+
     class Meta:
         ordering = ['data_envio']
 
     def __str__(self):
-        return f"Mensagem de {self.remetente.user.username} em {self.data_envio.strftime('%d/%m/%Y %H:%M')}"
+        if self.conteudo and self.media_file:
+            return f"Mensagem de {self.remetente.user.username} (com anexo): {self.conteudo[:50]}..."
+        elif self.conteudo:
+            return f"Mensagem de {self.remetente.user.username}: {self.conteudo[:50]}..."
+        elif self.media_file:
+            return f"Mensagem de {self.remetente.user.username} (anexo: {self.media_file.name})"
+        return f"Mensagem vazia de {self.remetente.user.username}"
+
+    # Helper para verificar o tipo de mídia no template
+    def is_image(self):
+        return self.media_type == 'image'
+
+    def is_video(self):
+        return self.media_type == 'video'
+
+    # Helper para obter a URL da mídia
+    def get_media_url(self):
+        if self.media_file:
+            return self.media_file.url
+        return None

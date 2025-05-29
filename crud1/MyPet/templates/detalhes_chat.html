@@ -46,9 +46,28 @@
                     {% if mensagens %}
                         {% for mensagem in mensagens %}
                             <div class="message-bubble {% if mensagem.remetente == perfil_usuario %}sent{% else %}received{% endif %}">
-                                {{ mensagem.conteudo }}
+                                {% if mensagem.conteudo %}
+                                    <p>{{ mensagem.conteudo }}</p>
+                                {% endif %}
+
+                                {% if mensagem.media_file %}
+                                    {% if mensagem.media_type == 'image' %}
+                                        <img src="{{ mensagem.media_file.url }}" alt="Imagem" class="chat-media-image">
+                                    {% elif mensagem.media_type == 'video' %}
+                                        <video controls class="chat-media-video">
+                                            <source src="{{ mensagem.media_file.url }}" type="video/mp4">
+                                            Seu navegador não suporta vídeos.
+                                        </video>
+                                    {% else %}
+                                        <a href="{{ mensagem.media_file.url }}" target="_blank">Ver anexo (tipo não suportado)</a>
+                                    {% endif %}
+                                {% endif %}
+
                                 <div class="message-meta">
                                     {{ mensagem.data_envio|date:"d/m/Y H:i" }} por {% if mensagem.remetente == perfil_usuario %}Você{% else %}{{ mensagem.remetente.user.first_name }}{% endif %}
+                                    {% if mensagem.lida and mensagem.remetente == perfil_usuario %}
+                                        <span class="read-receipt">✓</span> {# Indicador de lida #}
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
@@ -58,10 +77,28 @@
                 </div>
 
                 <div class="chat-form">
-                    <form method="post" style="display: flex; width: 100%; gap: 10px;">
+                    <form method="post" enctype="multipart/form-data" style="display: flex; flex-direction: column; width: 100%; gap: 10px;">
                         {% csrf_token %}
                         {{ form.conteudo }}
+                        <div class="file-input-wrapper">
+                            {{ form.media_file }}
+                            <label for="{{ form.media_file.id_for_label }}" class="file-input-label">Anexar Mídia</label>
+                        </div>
                         <button type="submit">Enviar</button>
+                        {% if form.conteudo.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.conteudo.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if form.media_file.errors %}
+                            <ul class="errorlist">
+                                {% for error in form.media_file.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
                     </form>
                 </div>
             </div>
