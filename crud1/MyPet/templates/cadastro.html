@@ -28,10 +28,10 @@
 
             {# Campos do UserCreationForm #}
             {{ form.username.label_tag }} {{ form.username }}<br><br>
-            {{ form.password1.label_tag }} {{ form.password1 }}<br><br> {# CORREÇÃO AQUI: AGORA É 'password1' #}
+            {{ form.password1.label_tag }} {{ form.password1 }}<br><br>
             {{ form.password2.label_tag }} {{ form.password2 }}<br><br>
 
-            {# Seus campos extras #}
+            {# Seus campos extras (CPF, Nome, Data de Nasc, Gênero, Telefone, Endereço, Tipo Residência) #}
             {{ form.cpf.label_tag }} {{ form.cpf }}<br><br>
             {{ form.nome.label_tag }} {{ form.nome }}<br><br>
             {{ form.data_de_nasc.label_tag }} {{ form.data_de_nasc }}<br><br>
@@ -40,6 +40,34 @@
             {{ form.telefone.label_tag }} {{ form.telefone }}<br><br>
             {{ form.endereco.label_tag }} {{ form.endereco }}<br><br>
             {{ form.tipo_residencia.label_tag }} {{ form.tipo_residencia }}<br><br>
+
+            <h3>Suas Preferências de Adoção</h3>
+            <p>Ajude-nos a encontrar o pet ideal para você!</p>
+
+            {# NOVOS CAMPOS DE PREFERÊNCIA PARA O CADASTRO INICIAL #}
+            {{ form.preferencia_especie_animal.label_tag }} {{ form.preferencia_especie_animal }}<br><br>
+            {{ form.preferencia_idade_animal.label_tag }} {{ form.preferencia_idade_animal }}<br><br>
+            {{ form.preferencia_porte_animal.label_tag }} {{ form.preferencia_porte_animal }}<br><br>
+            {{ form.nivel_atividade_usuario.label_tag }} {{ form.nivel_atividade_usuario }}<br><br>
+            {{ form.experiencia_animais.label_tag }} {{ form.experiencia_animais }}<br><br>
+            
+            <div class="form-check">
+                {{ form.tem_criancas }} {{ form.tem_criancas.label_tag }}
+            </div>
+            <br>
+            {{ form.idades_criancas.label_tag }} {{ form.idades_criancas }}<br><br>
+            
+            <div class="form-check">
+                {{ form.tem_outros_animais }} {{ form.tem_outros_animais.label_tag }}
+            </div>
+            <br>
+            {{ form.tipo_outros_animais.label_tag }} {{ form.tipo_outros_animais }}<br><br>
+            {{ form.temperamento_outros_animais.label_tag }} {{ form.temperamento_outros_animais }}<br><br>
+            
+            <div class="form-check">
+                {{ form.disposicao_necessidades_especiais }} {{ form.disposicao_necessidades_especiais.label_tag }}
+            </div>
+            <br>
 
             {# Exibição de erros detalhada #}
             {% if form.errors %}
@@ -65,11 +93,11 @@
                 </ul>
             {% endif %}
 
-             <label>
+            <label>
                 <br> <input type="checkbox" required> <br>
                 Aceito os termos de uso
             </label>
-           <br> <br> <button type="submit">Cadastrar</button> <br> <br>
+            <br> <br> <button type="submit">Cadastrar</button> <br> <br>
         <p>Já tem uma conta? <a href={% url 'index' %}>Faça login</a></p>
     </div>
     {# Opcional: Adicione um link para o Bootstrap JS se você estiver usando bootstrap4 #}

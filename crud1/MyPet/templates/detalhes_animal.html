@@ -26,17 +26,22 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #fff;
+            text-align: left; /* Garante que o texto dentro seja alinhado à esquerda */
         }
         .animal-details img {
             max-width: 100%;
             height: auto;
             border-radius: 5px;
             margin-bottom: 15px;
+            display: block; /* Garante que a imagem ocupe sua própria linha */
+            margin-left: auto;
+            margin-right: auto; /* Centraliza a imagem */
         }
         .owner-details h3 {
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
             margin-bottom: 15px;
+            text-align: center; /* Centraliza o título do dono */
         }
         .owner-details p {
             margin-bottom: 5px;
@@ -48,6 +53,11 @@
             border-radius: 50%;
             margin-right: 15px;
             vertical-align: middle;
+            display: block; /* Para centralizar */
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 15px;
+            border: 2px solid #6200ea; /* Cor da borda da foto de perfil */
         }
         .chat-button {
             background-color: #007bff;
@@ -61,9 +71,82 @@
             display: block; /* Para o botão ocupar a largura total */
             width: 100%; /* Ocupar a largura total do container */
             box-sizing: border-box; /* Inclui padding e borda na largura */
+            text-align: center;
         }
         .chat-button:hover {
             background-color: #0056b3;
+        }
+
+        /* Estilos para o cabeçalho principal */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+            background-color: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            flex-grow: 1;
+            text-align: center;
+            margin: 0;
+            color: #333;
+            font-size: 2.5rem; /* Mantém o tamanho do h1 do seu styles.css */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .back-button {
+            background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase; /* Para combinar com o estilo do seu botão */
+        }
+
+        .back-button:hover {
+            background-color: #d45e1d;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #333;
+            margin-right: 5px;
+        }
+        .info-value {
+            color: #555;
+        }
+        .warning-text {
+            color: #e67e22; /* Laranja para avisos */
+            font-weight: bold;
+        }
+        .small-text {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 5px;
+        }
+        /* Estilo para o link do perfil do dono */
+        .owner-profile-link {
+            text-decoration: none;
+            color: inherit; /* Herda a cor do texto pai */
+            display: block; /* Para que o link ocupe toda a largura do seu conteúdo */
+            margin-bottom: 10px; /* Espaçamento abaixo do link */
+        }
+        .owner-profile-link:hover .profile-photo {
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+        }
+        .owner-profile-link:hover .info-value {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -88,29 +171,83 @@
                     {% if animal.imagem %}
                         <img src="{{ animal.imagem.url }}" alt="{{ animal.nome }}">
                     {% else %}
-                        <img src="{% static 'images/default_pet.png' %}" alt="Animal Padrão">
+                        {# Certifique-se de que 'default_pet.png' exista em static/img/ ou ajuste o caminho #}
+                        <img src="{% static 'img/default_pet.png' %}" alt="Animal Padrão">
                     {% endif %}
-                    <p><strong>Espécie:</strong> {{ animal.get_especie_display }}</p>
-                    <p><strong>Raça:</strong> {{ animal.raca }}</p>
-                    <p><strong>Porte:</strong> {{ animal.get_porte_display }}</p>
-                    <p><strong>Sexo:</strong> {{ animal.get_sexo_display }}</p>
-                    <p><strong>Data de Nascimento:</strong> {{ animal.dt_nascimento|date:"d/m/Y" }}</p>
-                    <p><strong>Idade:</strong> {{ animal.idade }}</p>
-                    <p><strong>Cor:</strong> {{ animal.cor|default:"Não informado" }}</p>
-                    <p><strong>Tamanho:</strong> {{ animal.tamanho|default:"Não informado" }}</p>
-                    <p><strong>Disponível para Adoção:</strong> {% if animal.disponivel_adocao %}Sim{% else %}Não{% endif %}</p>
+                    <p><span class="info-label">Espécie:</span> <span class="info-value">{{ animal.get_especie_display }}</span></p>
+                    <p><span class="info-label">Raça:</span> <span class="info-value">{{ animal.raca }}</span></p>
+                    <p><span class="info-label">Porte:</span> <span class="info-value">{{ animal.get_porte_display }}</span></p>
+                    <p><span class="info-label">Sexo:</span> <span class="info-value">{{ animal.get_sexo_display }}</span></p>
+                    <p><span class="info-label">Data de Nascimento:</span> <span class="info-value">{{ animal.dt_nascimento|date:"d/m/Y" }}</span></p>
+                    <p><span class="info-label">Idade:</span> <span class="info-value">{% if animal.idade is not None %}{{ animal.idade }} ano(s){% else %}Não informado{% endif %}</span></p>
+                    <p><span class="info-label">Cor:</span> <span class="info-value">{{ animal.cor|default:"Não informado" }}</span></p>
+                    <p><span class="info-label">Tamanho:</span> <span class="info-value">{{ animal.tamanho|default:"Não informado" }}</span></p>
+                    <p><span class="info-label">Disponível para Adoção:</span> <span class="info-value">{% if animal.disponivel_adocao %}Sim{% else %}Não{% endif %}</span></p>
+
+                    <hr> {# Separador para as novas informações #}
+                    <h3>Características Adicionais</h3>
+                    <p><span class="info-label">Nível de Energia:</span> <span class="info-value">{{ animal.get_nivel_energia_display }}</span></p>
+                    <p><span class="info-label">Temperamento:</span> <span class="info-value">{{ animal.temperamento|default:"Não informado" }}</span></p>
+                    
+                    {% if animal.socializacao_criancas != 'nao_avaliado' %}
+                        <p><span class="info-label">Socializa com Crianças:</span> <span class="info-value">{{ animal.get_socializacao_criancas_display }}</span></p>
+                    {% endif %}
+                    {% if animal.socializacao_outros_animais != 'nao_avaliado' %}
+                        <p><span class="info-label">Socializa com Outros Animais:</span> <span class="info-value">{{ animal.get_socializacao_outros_animais_display }}</span></p>
+                    {% endif %}
+
+                    <p><span class="info-label">Necessidade de Espaço:</span> <span class="info-value">{{ animal.get_necessidade_espaco_display }}</span></p>
+
+                    {% if animal.necessidades_especiais %}
+                        <p class="warning-text">⚠️ Possui Necessidades Especiais!</p>
+                        {% if animal.descricao_necessidades %}
+                            <p class="small-text">{{ animal.descricao_necessidades }}</p>
+                        {% endif %}
+                    {% endif %}
                 </div>
 
                 <div class="owner-details">
                     <h3>Informações do Dono</h3>
                     {% if dono_perfil %}
-                        {% if dono_perfil.foto_perfil %}
-                            <img src="{{ dono_perfil.foto_perfil.url }}" alt="Foto de Perfil do Dono" class="profile-photo">
+                        {# Link para o perfil público do dono, passando o ID do animal #}
+                        <a href="{% url 'detalhes_perfil_publico_com_animal' dono_perfil.id animal.id %}" class="owner-profile-link">
+                            {% if dono_perfil.foto_perfil %}
+                                <img src="{{ dono_perfil.foto_perfil.url }}" alt="Foto de Perfil do Dono" class="profile-photo">
+                            {% else %}
+                                {# Certifique-se de que 'default_profile.png' exista em static/img/ ou ajuste o caminho #}
+                                <img src="{% static 'img/default_profile.png' %}" alt="Foto Padrão de Perfil" class="profile-photo">
+                            {% endif %}
+                            <p><span class="info-label">Nome:</span> <span class="info-value">{{ dono_perfil.user.first_name|default:dono_perfil.user.username }}</span></p>
+                        </a>
+                        
+                        <p><span class="info-label">Gênero:</span> <span class="info-value">{{ dono_perfil.get_genero_display }}</span></p>
+                        <p><span class="info-label">Endereço:</span> <span class="info-value">{{ dono_perfil.endereco }}</span></p>
+                        <p><span class="info-label">Tipo de Residência:</span> <span class="info-value">{{ dono_perfil.get_tipo_residencia_display }}</span></p>
+                        <p><span class="info-label">Nível de Atividade:</span> <span class="info-value">{{ dono_perfil.get_nivel_atividade_usuario_display }}</span></p>
+                        <p><span class="info-label">Experiência com Animais:</span> <span class="info-value">{{ dono_perfil.get_experiencia_animais_display }}</span></p>
+                        
+                        {% if dono_perfil.tem_criancas %}
+                            <p><span class="info-label">Possui Crianças:</span> <span class="info-value">Sim</span></p>
+                            {% if dono_perfil.idades_criancas %}
+                                <p class="small-text">Faixa Etária: {{ dono_perfil.idades_criancas }}</p>
+                            {% endif %}
+                        {% else %}
+                            <p><span class="info-label">Possui Crianças:</span> <span class="info-value">Não</span></p>
                         {% endif %}
-                        <p><strong>Nome:</strong> {{ dono_perfil.user.first_name }}</p>
-                        <p><strong>Gênero:</strong> {{ dono_perfil.get_genero_display }}</p>
-                        <p><strong>Endereço:</strong> {{ dono_perfil.endereco }}</p>
-                        <p><strong>Tipo de Residência:</strong> {{ dono_perfil.get_tipo_residencia_display }}</p>
+
+                        {% if dono_perfil.tem_outros_animais %}
+                            <p><span class="info-label">Possui Outros Animais:</span> <span class="info-value">Sim</span></p>
+                            {% if dono_perfil.tipo_outros_animais %}<p class="small-text">Tipo: {{ dono_perfil.tipo_outros_animais }}</p>{% endif %}
+                            {% if dono_perfil.temperamento_outros_animais %}<p class="small-text">Temperamento: {{ dono_perfil.temperamento_outros_animais }}</p>{% endif %}
+                        {% else %}
+                            <p><span class="info-label">Possui Outros Animais:</span> <span class="info-value">Não</span></p>
+                        {% endif %}
+
+                        {% if dono_perfil.disposicao_necessidades_especiais %}
+                            <p class="warning-text">Disposto(a) a Adotar Animal com Necessidades Especiais.</p>
+                        {% endif %}
+
+                        <hr> {# Separador para o botão de chat #}
 
                         {# Botão para iniciar chat, visível apenas se o usuário logado não for o dono #}
                         {% if pode_iniciar_chat %}

@@ -31,10 +31,15 @@
             text-align: center;
             margin: 0;
             color: #333;
+            font-size: 2.5rem; /* Mantém o tamanho do h1 do seu styles.css */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
         .back-button {
-            background-color: #007bff;
+            background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
             color: white;
             padding: 8px 15px;
             border: none;
@@ -42,10 +47,11 @@
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.3s ease;
+            text-transform: uppercase; /* Para combinar com o estilo do seu botão */
         }
 
         .back-button:hover {
-            background-color: #0056b3;
+            background-color: #d45e1d;
         }
 
         /* Mensagens do Django */
@@ -78,6 +84,11 @@
             background-color: #d1ecf1;
             color: #0c5460;
             border: 1px solid #bee5eb;
+        }
+        .messages .warning { /* Adicionado para consistência */
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
         }
 
         /* Estilos específicos para a visualização de perfil público */
@@ -122,13 +133,51 @@
         .profile-actions {
             margin-top: 30px;
         }
+        .info-label { /* Adicionado para consistência */
+            font-weight: bold;
+            color: #333;
+            margin-right: 5px;
+        }
+        .info-value { /* Adicionado para consistência */
+            color: #555;
+        }
+        .warning-text { /* Adicionado para consistência */
+            color: #e67e22; /* Laranja para avisos */
+            font-weight: bold;
+        }
+        .small-text { /* Adicionado para consistência */
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 5px;
+        }
+        .chat-button-profile { /* Estilo específico para o botão de chat no perfil público */
+            background-color: #28a745; /* Verde de envio */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+        .chat-button-profile:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
     <div class="container1">
         <header>
-            <button class="back-button" onclick="history.back()">← Voltar</button> {# Botão para voltar à página anterior #}
-            <h1>Perfil de {{ perfil.user.first_name }}</h1>
+            {# Botão de voltar inteligente: volta para a página do animal se veio de lá, senão para o mural #}
+            {% if animal %}
+                <button class="back-button" onclick="window.location.href='{% url 'detalhes_animal' animal.id %}'">← Voltar ao Animal</button>
+            {% else %}
+                <button class="back-button" onclick="history.back()">← Voltar</button> {# Fallback para voltar à página anterior #}
+            {% endif %}
+            <h1>Perfil de {{ perfil.user.first_name|default:perfil.user.username }}</h1>
         </header>
         <div class="content">
             {% if messages %}
@@ -143,20 +192,57 @@
                 {% if perfil.foto_perfil %}
                     <img src="{{ perfil.foto_perfil.url }}" alt="Foto de Perfil de {{ perfil.user.first_name }}">
                 {% else %}
-                    <img src="{% static 'images/default_profile.png' %}" alt="Foto Padrão de Perfil">
+                    {# Caminho ajustado para consistência com 'img/' #}
+                    <img src="{% static 'img/default_profile.png' %}" alt="Foto Padrão de Perfil">
                 {% endif %}
 
-                <h2>{{ perfil.user.first_name }}</h2>
+                <h2>{{ perfil.user.first_name|default:perfil.user.username }}</h2>
 
                 <div class="profile-info">
-                    <p><strong>Gênero:</strong> {{ perfil.get_genero_display }}</p>
-                    <p><strong>Endereço:</strong> {{ perfil.endereco }}</p>
-                    <p><strong>Tipo de Residência:</strong> {{ perfil.get_tipo_residencia_display }}</p>
+                    <p><span class="info-label">Gênero:</span> <span class="info-value">{{ perfil.get_genero_display }}</span></p>
+                    <p><span class="info-label">Endereço:</span> <span class="info-value">{{ perfil.endereco }}</span></p>
+                    <p><span class="info-label">Tipo de Residência:</span> <span class="info-value">{{ perfil.get_tipo_residencia_display }}</span></p>
                     {# Não exibir telefone ou CPF em um perfil público, por segurança/privacidade #}
+
+                    <hr> {# Separador para as preferências #}
+                    <h3>Preferências de Adoção</h3>
+                    <p><span class="info-label">Nível de Atividade:</span> <span class="info-value">{{ perfil.get_nivel_atividade_usuario_display }}</span></p>
+                    <p><span class="info-label">Experiência com Animais:</span> <span class="info-value">{{ perfil.get_experiencia_animais_display }}</span></p>
+                    
+                    {% if perfil.tem_criancas %}
+                        <p><span class="info-label">Possui Crianças:</span> <span class="info-value">Sim</span></p>
+                        {% if perfil.idades_criancas %}
+                            <p class="small-text">Faixa Etária: {{ perfil.idades_criancas }}</p>
+                        {% endif %}
+                    {% else %}
+                        <p><span class="info-label">Possui Crianças:</span> <span class="info-value">Não</span></p>
+                    {% endif %}
+
+                    {% if perfil.tem_outros_animais %}
+                        <p><span class="info-label">Possui Outros Animais:</span> <span class="info-value">Sim</span></p>
+                        {% if perfil.tipo_outros_animais %}<p class="small-text">Tipo: {{ perfil.tipo_outros_animais }}</p>{% endif %}
+                        {% if perfil.temperamento_outros_animais %}<p class="small-text">Temperamento: {{ perfil.temperamento_outros_animais }}</p>{% endif %}
+                    {% else %}
+                        <p><span class="info-label">Possui Outros Animais:</span> <span class="info-value">Não</span></p>
+                    {% endif %}
+
+                    {% if perfil.disposicao_necessidades_especiais %}
+                        <p class="warning-text">Disposto(a) a Adotar Animal com Necessidades Especiais.</p>
+                    {% endif %}
                 </div>
 
                 <div class="profile-actions">
-                    <a href="{% url 'lista_chats' %}" class="back-button">Ver Minhas Conversas</a>
+                    {# Botão para iniciar chat, visível apenas se o animal_id foi passado e o perfil não é do usuário logado #}
+                    {% if animal and request.user != perfil.user %}
+                        <a href="{% url 'iniciar_chat' perfil.id animal.id %}">
+                            <button class="chat-button-profile">Iniciar Conversa sobre {{ animal.nome }}</button>
+                        </a>
+                    {% endif %}
+
+                    {# Botão de voltar padrão, se não houver um animal específico para voltar #}
+                    {% if not animal %}
+                        <a href="{% url 'muralpets' %}" class="back-button">Voltar ao Mural de Pets</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

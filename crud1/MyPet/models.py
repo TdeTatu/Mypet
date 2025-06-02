@@ -13,7 +13,6 @@ class Perfil(models.Model):
     cpf = models.CharField(max_length=14)
     data_nascimento = models.DateField()
 
-    # Definição das opções para Gênero
     GENERO_CHOICES = [
         ('masculino', 'Masculino'),
         ('feminino', 'Feminino'),
@@ -26,7 +25,6 @@ class Perfil(models.Model):
     telefone = models.CharField(max_length=20)
     endereco = models.CharField(max_length=200)
 
-    # Definição das opções para Tipo de Residência
     TIPO_RESIDENCIA_CHOICES = [
         ('casa', 'Casa'),
         ('apartamento', 'Apartamento'),
@@ -36,22 +34,89 @@ class Perfil(models.Model):
     ]
     tipo_residencia = models.CharField('Tipo de Residência', max_length=30, choices=TIPO_RESIDENCIA_CHOICES)
 
-    # --- NOVA ALTERAÇÃO: Adiciona o campo foto_perfil ---
     foto_perfil = StdImageField(
         'Foto de Perfil',
-        upload_to='perfis', # Pasta onde as fotos serão salvas (ex: media/perfis/)
-        variations={'thumb': (128, 128, True)}, # Cria uma thumbnail de 128x128, cortando se necessário
-        null=True, # Permite que o campo seja nulo no banco de dados
-        blank=True # Permite que o campo seja deixado em branco no formulário
+        upload_to='perfis',
+        variations={'thumb': (128, 128, True)},
+        null=True,
+        blank=True
     )
-    # --- FIM DA NOVA ALTERAÇÃO ---
+
+    # --- CAMPOS ADICIONAIS SUGERIDOS PARA RECOMENDAÇÃO ---
+    # Usando choices da classe Animal para manter consistência, se Animal estiver no mesmo app ou importado
+    # Importante: certifique-se de que Animal esteja definido antes ou importado corretamente.
+    
+    # Se você for usar Animal.PORTE_CHOICES, certifique-se de que Animal esteja importado.
+    # Exemplo: from .animal import Animal # Se Animal estiver em outro arquivo do mesmo app
+    # Ou apenas defina as escolhas diretamente aqui, como foi feito para TIPO_RESIDENCIA_CHOICES
+    
+    PREF_PORTE_CHOICES = [
+        ('pequeno', 'Pequeno'),
+        ('medio', 'Médio'),
+        ('grande', 'Grande'),
+        ('gigante', 'Gigante'),
+        ('qualquer', 'Qualquer Porte'), # Adicionando opção 'qualquer'
+    ]
+    PREF_IDADE_CHOICES = [
+        ('filhote', 'Filhote'),
+        ('adulto', 'Adulto'),
+        ('idoso', 'Idoso'),
+        ('qualquer', 'Qualquer Idade'),
+    ]
+    ATIVIDADE_USUARIO_CHOICES = [
+        ('baixo', 'Calmo/Sedentário'),
+        ('medio', 'Moderado'),
+        ('alto', 'Muito Ativo'),
+    ]
+    EXPERIENCIA_CHOICES = [
+        ('nenhuma', 'Nenhuma'),
+        ('alguma', 'Alguma'),
+        ('muita', 'Muita'),
+    ]
+    TIPO_OUTROS_ANIMAIS_CHOICES = [ # Exemplo, você pode expandir
+        ('cachorro', 'Cachorro'),
+        ('gato', 'Gato'),
+        ('outros', 'Outros'),
+        ('nao_possui', 'Não Possui'),
+    ]
+    TEMPERAMENTO_OUTROS_ANIMAIS_CHOICES = [ # Exemplo
+        ('docil', 'Dócil'),
+        ('dominante', 'Dominante'),
+        ('brincalhao', 'Brincalhão'),
+        ('nao_se_aplica', 'Não se Aplica'),
+    ]
+    PREF_ESPECIE_CHOICES = [
+        ('cachorro', 'Cachorro'),
+        ('gato', 'Gato'),
+        ('passaro', 'Pássaro'),
+        ('roedor', 'Roedor'),
+        ('reptil', 'Réptil'),
+        ('peixe', 'Peixe'),
+        ('outros', 'Outros'),
+        ('qualquer', 'Qualquer Espécie'),
+    ]
+
+    preferencia_especie_animal = models.CharField('Espécie Preferencial', max_length=100, choices=PREF_ESPECIE_CHOICES, default='qualquer')
+    preferencia_idade_animal = models.CharField('Idade Preferencial do Animal', max_length=50, choices=PREF_IDADE_CHOICES, default='qualquer')
+    preferencia_porte_animal = models.CharField('Porte Preferencial do Animal', max_length=50, choices=PREF_PORTE_CHOICES, default='qualquer')
+    nivel_atividade_usuario = models.CharField('Seu Nível de Atividade', max_length=50, choices=ATIVIDADE_USUARIO_CHOICES, default='medio')
+    experiencia_animais = models.CharField('Experiência Prévia com Animais', max_length=50, choices=EXPERIENCIA_CHOICES, default='alguma')
+    
+    tem_criancas = models.BooleanField('Possui Crianças em Casa?', default=False)
+    idades_criancas = models.CharField('Faixa Etária das Crianças (se houver)', max_length=100, null=True, blank=True, help_text='Ex: 0-5, 6-12, 13+ ou "Não se aplica"')
+    
+    tem_outros_animais = models.BooleanField('Possui Outros Animais de Estimação?', default=False)
+    tipo_outros_animais = models.CharField('Tipo de Outros Animais (se houver)', max_length=100, null=True, blank=True, choices=TIPO_OUTROS_ANIMAIS_CHOICES)
+    temperamento_outros_animais = models.CharField('Temperamento dos Outros Animais (se houver)', max_length=100, null=True, blank=True, choices=TEMPERAMENTO_OUTROS_ANIMAIS_CHOICES)
+    
+    disposicao_necessidades_especiais = models.BooleanField('Disposto(a) a Adotar Animal com Necessidades Especiais?', default=False)
 
     class Meta:
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfis'
 
     def __str__(self):
-        return f"Perfil de {self.user.username}"
+        return self.user.username
 
 class Base(models.Model):
     criado = models.DateTimeField('Data de criação', auto_now_add=True) # Mude de DateField para DateTimeField
@@ -92,6 +157,22 @@ class Animal(Base):
         ('femea', 'Fêmea'),
         ('nao_informado', 'Não Informado'),
     ]
+    ENERGIA_CHOICES = [
+        ('baixo', 'Baixo'),
+        ('medio', 'Médio'),
+        ('alto', 'Alto'),
+    ]
+    SOCIALIZACAO_CHOICES = [
+        ('sim', 'Sim'),
+        ('nao', 'Não'),
+        ('depende', 'Depende'),
+        ('nao_avaliado', 'Não Avaliado/Informado'), # Adição útil para flexibilidade
+    ]
+    ESPACO_CHOICES = [
+        ('pequeno', 'Pouco (apartamento)'),
+        ('medio', 'Médio (casa sem quintal grande)'),
+        ('grande', 'Grande (casa com quintal)'),
+    ]
 
     especie = models.CharField('Espécie', max_length=100, choices=ESPECIE_CHOICES)
     raca = models.CharField('Raça', max_length=100)
@@ -104,6 +185,15 @@ class Animal(Base):
     tamanho = models.CharField('Tamanho', max_length=50, null=True, blank=True)
     slug = models.SlugField('Slug', max_length=100, blank=True, editable=False)
     disponivel_adocao = models.BooleanField('Disponível para Adoção?', default=False)
+
+    # --- CAMPOS ADICIONAIS SUGERIDOS ---
+    nivel_energia = models.CharField('Nível de Energia', max_length=50, choices=ENERGIA_CHOICES, default='medio')
+    temperamento = models.CharField('Temperamento', max_length=100, help_text='Ex: Calmo, brincalhão, tímido, independente, sociável.')
+    socializacao_criancas = models.CharField('Socialização com Crianças', max_length=50, choices=SOCIALIZACAO_CHOICES, default='nao_avaliado')
+    socializacao_outros_animais = models.CharField('Socialização com Outros Animais', max_length=50, choices=SOCIALIZACAO_CHOICES, default='nao_avaliado')
+    necessidades_especiais = models.BooleanField('Possui Necessidades Especiais?', default=False)
+    descricao_necessidades = models.TextField('Descrição das Necessidades Especiais', null=True, blank=True)
+    necessidade_espaco = models.CharField('Necessidade de Espaço', max_length=50, choices=ESPACO_CHOICES, default='medio')
 
     class Meta:
         verbose_name = 'Animal'

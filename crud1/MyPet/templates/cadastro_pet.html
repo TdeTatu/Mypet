@@ -9,6 +9,72 @@
 
     {% bootstrap_css %} {# Inclui o CSS do Bootstrap #}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}"> {# Seu CSS customizado #}
+    <style>
+        /* Adicione estilos específicos para form-check se não estiverem no seu styles.css */
+        .form-check {
+            display: flex; /* Usa flexbox para alinhar checkbox e label */
+            align-items: center; /* Centraliza verticalmente */
+            margin-bottom: 1rem; /* Espaço abaixo da checkbox */
+        }
+        .form-check input[type="checkbox"] {
+            width: auto; /* Remove a largura 100% que pode vir de estilos gerais */
+            margin-right: 0.5rem; /* Espaço entre a checkbox e o label */
+        }
+        .form-check label {
+            margin-bottom: 0; /* Remove margem inferior padrão de label */
+            font-weight: normal; /* O label da checkbox geralmente não é negrito */
+        }
+        /* Ajustes gerais para o container e header se forem diferentes do styles.css */
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto; /* Centraliza o container */
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+            background-color: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            flex-grow: 1;
+            text-align: center;
+            margin: 0;
+            color: #333;
+            font-size: 2.5rem; /* Mantém o tamanho do h1 do seu styles.css */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .back-button {
+            background-color: #ff5722;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .back-button:hover {
+            background-color: #d45e1d;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -28,9 +94,44 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-            {# Este é o ponto crucial: renderiza todos os campos do formulário com estilo Bootstrap #}
-            {% bootstrap_form form %}
-
+            {# Renderiza todos os campos exceto 'necessidades_especiais' e 'descricao_necessidades' #}
+            {% for field in form %}
+                {% if field.name == 'necessidades_especiais' %}
+                    <div class="form-group">
+                        <div class="form-check">
+                            {{ field }} {# Renderiza a checkbox #}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                        </div>
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% elif field.name == 'descricao_necessidades' %}
+                    <div class="form-group">
+                        {{ field.label_tag }} {# Renderiza o label (texto) #}
+                        {{ field }} {# Renderiza o textarea #}
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    {# Renderiza os outros campos normalmente usando bootstrap_field para cada um #}
+                    {% bootstrap_field field %}
+                {% endif %}
+            {% endfor %}
+            
             <button type="submit" class="btn btn-primary">Cadastrar Pet</button>
         </form>
     </div>

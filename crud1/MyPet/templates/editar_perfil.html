@@ -6,10 +6,141 @@
     <title>Editar Perfil</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Estilos específicos para o container e header, se não estiverem no styles.css */
+        .container {
+            max-width: 700px; /* Ajuste o tamanho do container se necessário */
+            margin: 20px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Alinha o botão de voltar à esquerda */
+            margin-bottom: 20px;
+            background-color: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            flex-grow: 1; /* Faz o título ocupar o espaço restante */
+            text-align: center; /* Centraliza o título */
+            margin: 0;
+            color: #333;
+            font-size: 2.5rem; /* Mantém o tamanho do h1 do seu styles.css */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .back-button {
+            background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase; /* Para combinar com o estilo do seu botão */
+        }
+
+        .back-button:hover {
+            background-color: #d45e1d;
+        }
+
+        /* Estilos para a foto de perfil */
+        .profile-image-display {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            border: 3px solid #6200ea; /* Borda para destacar a imagem */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Ajustes para os formulários renderizados por as_p */
+        form p {
+            margin-bottom: 15px; /* Espaçamento entre os campos */
+        }
+        form label {
+            display: block; /* Garante que o label fique acima do input */
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+            text-align: left; /* Alinha labels à esquerda */
+        }
+        form input[type="text"],
+        form input[type="email"],
+        form input[type="date"],
+        form input[type="tel"],
+        form select,
+        form textarea {
+            width: calc(100% - 24px); /* Ajusta a largura para considerar o padding */
+            padding: 12px;
+            margin: 0; /* Remove margem padrão do input */
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            box-sizing: border-box; /* Inclui padding e border na largura total */
+        }
+        form input[type="checkbox"] {
+            width: auto; /* Checkbox não deve ter 100% de largura */
+            margin-right: 10px;
+        }
+        form .form-check { /* Estilo para o checkbox, se você tiver um container específico */
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        form .helptext {
+            font-size: 0.85em;
+            color: #777;
+            margin-top: 5px;
+            text-align: left;
+        }
+
+        /* Estilo para o botão de salvar */
+        .save-button {
+            background-color: #6200ea;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin-top: 20px; /* Mais espaço acima do botão */
+            text-transform: uppercase;
+        }
+
+        .save-button:hover {
+            background-color: #3700b3;
+            transform: translateY(-2px);
+        }
+
+        .save-button:active {
+            background-color: #03dac5;
+            transform: translateY(2px);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
+            <button class="back-button" onclick="window.location.href='{% url 'telaprincipal' %}'">← Voltar</button>
             <h1>Editar Perfil</h1>
         </header>
         <div class="content">
@@ -27,15 +158,19 @@
 
                 {# Exibe a foto de perfil atual, se existir #}
                 {% if perfil.foto_perfil %}
-                    <img src="{{ perfil.foto_perfil.url }}" alt="Foto de Perfil" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; margin-bottom: 20px;">
+                    <img src="{{ perfil.foto_perfil.url }}" alt="Foto de Perfil" class="profile-image-display">
                 {% else %}
                     <p>Nenhuma foto de perfil.</p>
                 {% endif %}
 
-                {{ form.as_p }} {# Renderiza todos os campos do formulário como parágrafos #}
+                {# Renderiza todos os campos do formulário como parágrafos #}
+                {# O form.as_p já irá renderizar os labels e inputs automaticamente #}
+                {{ form.as_p }} 
 
-                <button type="submit">Salvar Alterações</button>
-            </form> <br> <br> 
+                <button type="submit" class="save-button">Salvar Alterações</button>
+            </form> 
+            <br>
+            {# O link "Voltar ao Menu Principal" já está presente e funcional #}
             <a href="{% url 'telaprincipal' %}">Voltar ao Menu Principal</a>
         </div>
     </div>

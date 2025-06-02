@@ -14,7 +14,7 @@ body {
 }
 
 /* Container Centralizado (fundo branco pequeno) */
-.container, .container1 {
+.container, .container1 { /* Mantido .container1 para compatibilidade onde usado */
     width: 100%;
     max-width: 500px; /* Tamanho do fundo branco */
     margin: 20px;
@@ -26,7 +26,20 @@ body {
 }
 
 /* Cabeçalho */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    background-color: #f0f0f0; /* Um fundo para o cabeçalho */
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 header h1 {
+    flex-grow: 1; /* Faz o título ocupar o espaço restante */
+    text-align: center;
     font-family: 'Montserrat', sans-serif;
     font-size: 2.5rem;
     color: #9932cc;
@@ -34,7 +47,7 @@ header h1 {
     text-transform: uppercase;
     letter-spacing: 3px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    margin: 0; /* Removido margin-bottom aqui para evitar conflito */
 }
 
 /* Botões */
@@ -70,6 +83,9 @@ button:active {
     font-size: 14px;
     padding: 8px 16px;
     border-radius: 5px;
+    /* Removido float: left; de estilos inline passados antes, para usar flexbox do header */
+    text-decoration: none; /* Para links que agem como botões */
+    display: inline-block; /* Para que o padding e margens funcionem corretamente */
 }
 
 .back-button:hover {
@@ -88,64 +104,12 @@ input, select, textarea {
     box-sizing: border-box;
 }
 
-/* Removido o estilo direto para input[type="file"] para usar o wrapper e label */
-
 /* Caixa de texto */
 textarea {
     resize: vertical;
 }
 
-/* --- NOVOS ESTILOS E AJUSTES PARA O CHAT --- */
-
-/* Ajustes no cabeçalho do chat (dentro do container1) */
-.chat-main-header { /* Específico para o header principal do chat */
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: 20px;
-    background-color: #f0f0f0; /* Um fundo para o cabeçalho */
-    padding: 10px 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    /* Removido text-align: center; para o header */
-}
-
-/* Estilos para a foto de perfil no cabeçalho do chat */
-.profile-photo-header {
-    width: 50px; /* Tamanho menor para o cabeçalho */
-    height: 50px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #6200ea; /* Cor da borda da foto de perfil */
-    margin-right: 15px; /* Espaço entre a foto e o texto */
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    flex-grow: 1; /* Ocupa o espaço restante para alinhar o texto corretamente */
-}
-
-.header-content div {
-    text-align: left; /* Alinha o texto à esquerda dentro do seu div */
-}
-
-.chat-main-header h1 { /* Específico para o h1 dentro do header do chat */
-    margin: 0;
-    color: #333; /* Cor mais suave para o título do chat */
-    font-size: 1.5rem; /* Ajusta o tamanho da fonte */
-    letter-spacing: 1px; /* Diminui o espaçamento */
-    text-transform: none; /* Remove uppercase */
-    text-shadow: none; /* Remove text-shadow */
-}
-
-.animal-info {
-    font-size: 0.85em;
-    color: #666;
-    margin-top: 5px;
-}
-
-/* Mensagens do Django (flash messages) */
+/* --- ESTILOS PARA MENSAGENS (MESSAGES DO DJANGO) --- */
 .messages {
     list-style: none;
     padding: 0;
@@ -177,9 +141,433 @@ textarea {
     border: 1px solid #bee5eb;
 }
 
+.messages .warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA O MURAL DE PETS (muralpets.html) --- */
+.animal-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 0;
+    margin: 20px 0;
+    justify-content: center;
+}
+
+.animal-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+}
+
+.animal-card-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.animal-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.animal-image {
+    width: 100%;
+    /* Removido height fixo para permitir que a proporção da imagem defina a altura */
+    max-height: 250px; /* Define uma altura máxima para evitar imagens muito altas */
+    object-fit: contain; /* Garante que a imagem inteira seja visível */
+    background-color: #f0f0f0; /* Fundo para preencher o espaço extra */
+    border-bottom: 1px solid #eee; /* Separador sutil da imagem para o texto */
+    /* Removido padding e box-sizing daqui, pois object-fit já lida com o ajuste */
+}
+
+.animal-info {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.animal-info h2 {
+    font-size: 1.4em;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+.animal-info p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.animal-info p:last-child {
+    margin-bottom: 0;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.no-animals {
+    padding: 50px;
+    text-align: center;
+    color: #777;
+    font-size: 1.2em;
+    background-color: #fefefe;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-top: 30px;
+}
+
+.profile-incomplete-warning { /* Mensagem de alerta no mural */
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.profile-incomplete-warning a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+.profile-incomplete-warning a:hover {
+    text-decoration: underline;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA DETALHES DO ANIMAL (detalhes_animal.html) --- */
+.details-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 20px auto;
+    max-width: 800px;
+}
+.animal-details, .owner-details {
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    text-align: left;
+}
+.animal-details img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.owner-details h3 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+.owner-details p {
+    margin-bottom: 5px;
+}
+.profile-photo {
+    width: 100px;
+    height: 100px;
+    object-fit: cover; /* Manter cover para fotos de perfil para preencher */
+    border-radius: 50%;
+    margin-right: 15px;
+    vertical-align: middle;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 15px;
+    border: 2px solid #6200ea;
+}
+.chat-button { /* Botão de chat na página de detalhes do animal */
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.chat-button:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos de informação (usados em detalhes_animal, detalhes_perfil_publico, meuspets) */
+.info-label {
+    font-weight: bold;
+    color: #333;
+    margin-right: 5px;
+}
+.info-value {
+    color: #555;
+}
+.warning-text {
+    color: #e67e22; /* Laranja para avisos */
+    font-weight: bold;
+}
+.small-text {
+    font-size: 0.9em;
+    color: #777;
+    margin-top: 5px;
+}
+.owner-profile-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    margin-bottom: 10px;
+}
+.owner-profile-link:hover .profile-photo {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+}
+.owner-profile-link:hover .info-value {
+    text-decoration: underline;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA PERFIL PÚBLICO (detalhes_perfil_publico.html) --- */
+.profile-view-container {
+    max-width: 700px;
+    margin: 20px auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 30px;
+    text-align: center;
+}
+.profile-view-container img { /* Foto de perfil no perfil público */
+    width: 150px;
+    height: 150px;
+    object-fit: cover; /* Manter cover para fotos de perfil */
+    border-radius: 50%;
+    border: 5px solid #007bff;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.profile-view-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 2em;
+}
+.profile-info {
+    text-align: left;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+.profile-actions {
+    margin-top: 30px;
+}
+.chat-button-profile { /* Estilo específico para o botão de chat no perfil público */
+    background-color: #28a745; /* Verde de envio */
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 20px;
+}
+.chat-button-profile:hover {
+    background-color: #218838;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA MEUS PETS (meuspets.html) --- */
+.pet-card {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+}
+.pet-card img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain; /* ALTERADO: A imagem se ajusta sem cortar */
+    border-radius: 50%;
+    border: 2px solid #007bff;
+    flex-shrink: 0;
+}
+.pet-details {
+    flex-grow: 1;
+    text-align: left;
+}
+.pet-details h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.3em;
+}
+.pet-details p {
+    margin: 5px 0;
+    color: #555;
+    font-size: 0.95em;
+}
+.no-pets {
+    text-align: center;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    color: #777;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA ACOMPANHAMENTO (acompanhamento.html) --- */
+.form-section, .list-section {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+.form-section h2, .list-section h2 {
+    color: #555;
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 20px;
+}
+.visita-card {
+    border: 1px solid #d1e7dd;
+    background-color: #eaf7ed;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.95em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.visita-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain; /* A imagem se ajusta sem cortar */
+    border-radius: 50%;
+    border: 2px solid #28a745;
+    flex-shrink: 0;
+}
+.visita-card strong { color: #28a745; }
+.visita-info {
+    flex-grow: 1;
+    text-align: left;
+}
+.no-visits {
+    text-align: center;
+    color: #777;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+}
+.pet-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+}
+.pet-selection-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.pet-selection-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain; /* A imagem se ajusta sem cortar */
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 2px solid #007bff;
+}
+
+/* --- ESTILOS PARA CHAT --- */
+/* Ajustes no cabeçalho do chat */
+.chat-main-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.profile-photo-header {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #6200ea;
+    margin-right: 15px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.header-content div {
+    text-align: left;
+}
+
+.chat-main-header h1 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    text-transform: none;
+    text-shadow: none;
+}
+
+.animal-info {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 5px;
+}
+
 /* Estilos específicos para a tela de chat */
 .chat-details-container {
-    max-width: 800px; /* Aumentado para melhor visualização */
+    max-width: 800px;
     margin: 20px auto;
     background-color: #fff;
     border-radius: 8px;
@@ -188,101 +576,64 @@ textarea {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    text-align: left; /* Garante que o conteúdo interno não seja centralizado */
-}
-
-.chat-header { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.chat-header .profile-photo { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #28a745; /* Cor verde para destaque */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.chat-header h2 { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
-    margin: 0;
-    font-size: 1.4em;
-    color: #333;
-}
-.chat-header p { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
-    margin: 0;
-    color: #666;
-    font-size: 0.9em;
-}
-.chat-header a { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
-    text-decoration: none;
-    color: inherit;
-}
-.chat-header a:hover .profile-photo { /* OBS: Este é o .chat-header antigo, que pode não ser mais usado com a nova estrutura do cabeçalho */
-    transform: scale(1.05);
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    text-align: left;
 }
 
 .messages-area {
     flex-grow: 1;
     padding: 10px;
-    background-color: #e5ddd5; /* Fundo mais quente e suave para a área de mensagens (WhatsApp-like) */
+    background-color: #e5ddd5;
     border-radius: 8px;
-    max-height: 400px; /* Altura máxima para a área de mensagens */
-    overflow-y: auto; /* Adiciona scroll se as mensagens excederem a altura */
+    max-height: 400px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Espaço entre as bolhas de mensagem */
-    padding-right: 5px; /* Para evitar que o scrollbar "corte" a bolha */
+    gap: 10px;
+    padding-right: 5px;
 }
 
 /* Estilo base para todas as bolhas de mensagem */
 .message-bubble {
     max-width: 75%;
-    padding: 12px 18px; /* Aumenta um pouco o padding */
-    border-radius: 15px; /* Borda mais arredondada */
+    padding: 12px 18px;
+    border-radius: 15px;
     line-height: 1.4;
     word-wrap: break-word;
-    font-size: 0.95em; /* Aumenta um pouco o tamanho da fonte */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Sombra sutil para "levantar" a bolha */
-    position: relative; /* Para o "bico" da bolha */
+    font-size: 0.95em;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
 }
 
 /* Estilo para mensagens ENVIADAS (pelo usuário logado) */
 .message-bubble.sent {
-    align-self: flex-end; /* Alinhamento à direita */
-    background-color: #dcf8c6; /* Verde claro vibrante - WhatsApp like */
+    align-self: flex-end;
+    background-color: #dcf8c6;
     color: #333;
-    margin-right: 5px; /* Pequena margem para não colar na borda */
+    margin-right: 5px;
 }
 
 /* Estilo para mensagens RECEBIDAS (pelo outro participante) */
 .message-bubble.received {
-    align-self: flex-start; /* Alinhamento à esquerda */
-    background-color: #ffffff; /* Fundo branco puro para recebidas */
+    align-self: flex-start;
+    background-color: #ffffff;
     color: #333;
-    border: 1px solid #e0e0e0; /* Borda sutil para separar do fundo */
-    margin-left: 5px; /* Pequena margem para não colar na borda */
+    border: 1px solid #e0e0e0;
+    margin-left: 5px;
 }
 
 /* Estilo para metadados da mensagem (data/hora e "por Você") */
 .message-meta {
-    font-size: 0.7em; /* Deixa a fonte dos metadados um pouco menor */
-    color: #888; /* Cor mais suave */
+    font-size: 0.7em;
+    color: #888;
     margin-top: 5px;
-    text-align: right; /* Alinha metadados à direita para mensagens enviadas */
-    opacity: 0.9; /* Deixa um pouco transparente */
-    display: block; /* Garante que o meta fique em sua própria linha */
-    padding-top: 3px; /* Espaçamento entre o texto e o meta */
+    text-align: right;
+    opacity: 0.9;
+    display: block;
+    padding-top: 3px;
 }
 
 .message-bubble.received .message-meta {
-    text-align: left; /* Alinha metadados à esquerda para mensagens recebidas */
+    text-align: left;
 }
 
 /* Campo de input da mensagem */
@@ -296,22 +647,22 @@ textarea {
 
 .chat-form textarea {
     flex-grow: 1;
-    padding: 12px; /* Aumenta o padding */
-    border: 1px solid #ccc; /* Borda mais suave */
-    border-radius: 8px; /* Borda mais arredondada */
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
     resize: vertical;
-    min-height: 50px; /* Altura mínima para o campo de texto */
+    min-height: 50px;
     font-size: 1em;
 }
 
 .chat-form button {
-    background-color: #28a745; /* Verde de envio */
+    background-color: #28a745;
     color: white;
-    padding: 12px 25px; /* Aumenta o padding do botão */
+    padding: 12px 25px;
     border: none;
-    border-radius: 8px; /* Mais arredondado */
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.1em; /* Fonte um pouco maior */
+    font-size: 1.1em;
     transition: background-color 0.3s ease;
 }
 
@@ -323,8 +674,8 @@ textarea {
 .file-input-wrapper {
     position: relative;
     overflow: hidden;
-    display: inline-block; /* Para que o wrapper não ocupe toda a largura */
-    flex-shrink: 0; /* Impede que o wrapper encolha */
+    display: inline-block;
+    flex-shrink: 0;
 }
 
 .file-input-wrapper input[type="file"] {
@@ -335,18 +686,18 @@ textarea {
     cursor: pointer;
     width: 100%;
     height: 100%;
-    box-sizing: border-box; /* Garante que padding e border não adicionem largura */
+    box-sizing: border-box;
 }
 
 .file-input-label {
-    background-color: #007bff; /* Azul padrão, pode ser ajustado */
+    background-color: #007bff;
     color: white;
     padding: 12px 15px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1em;
     transition: background-color 0.3s ease;
-    white-space: nowrap; /* Impede que o texto quebre */
+    white-space: nowrap;
 }
 
 .file-input-label:hover {
@@ -355,20 +706,61 @@ textarea {
 
 /* Estilos para imagens e vídeos dentro das mensagens */
 .chat-media-image, .chat-media-video {
-    max-width: 100%; /* Garante que a mídia não exceda a largura da bolha */
-    height: auto; /* Mantém a proporção */
-    border-radius: 8px; /* Bordas arredondadas para a mídia */
-    margin-top: 5px; /* Espaço entre o texto e a mídia */
-    display: block; /* Garante que ocupe sua própria linha */
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 5px;
+    display: block;
 }
 
 .chat-media-video {
-    width: 100%; /* Garante que o vídeo preencha a largura da bolha */
+    width: 100%;
 }
 
 /* Estilos para o indicador de mensagem lida */
 .read-receipt {
-    margin-left: 5px; /* Espaço entre a hora e o indicador */
-    color: #4CAF50; /* Verde para indicar que foi lido */
+    margin-left: 5px;
+    color: #4CAF50;
     font-weight: bold;
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA FORMULÁRIOS --- */
+/* Ajuste para a ordem da checkbox (se estiver renderizada individualmente) */
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    text-align: left; /* Garante alinhamento esquerdo se o container for centrado */
+}
+.form-check input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+.form-check label {
+    margin-bottom: 0;
+    font-weight: normal;
+}
+/* Estilo para o botão de salvar no editar_perfil.html */
+.save-button {
+    background-color: #6200ea;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 20px;
+    text-transform: uppercase;
+}
+
+.save-button:hover {
+    background-color: #3700b3;
+    transform: translateY(-2px);
+}
+
+.save-button:active {
+    background-color: #03dac5;
+    transform: translateY(2px);
 }

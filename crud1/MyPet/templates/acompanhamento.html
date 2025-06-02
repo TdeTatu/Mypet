@@ -51,18 +51,32 @@
         }
         .btn-primary:hover { background-color: #218838; border-color: #1e7e34; }
 
+        /* Estilos ajustados para o visita-card para incluir a imagem */
         .visita-card {
             border: 1px solid #d1e7dd;
             background-color: #eaf7ed;
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; /* Usa flexbox */
+            align-items: center; /* Alinha itens verticalmente no centro */
+            gap: 15px; /* Espaçamento entre a imagem e os detalhes */
             font-size: 0.95em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .visita-card img { /* Estilo para a imagem do pet na visita */
+            width: 80px;
+            height: 80px;
+            object-fit: contain; /* A imagem se ajusta sem cortar */
+            border-radius: 50%; /* Torna a imagem redonda */
+            border: 2px solid #28a745; /* Borda na cor de sucesso */
+            flex-shrink: 0; /* Impede que a imagem encolha */
         }
         .visita-card strong { color: #28a745; }
+        .visita-info { /* Para envolver os detalhes do texto */
+            flex-grow: 1; /* Permite que o texto ocupe o espaço restante */
+            text-align: left; /* Garante que o texto seja alinhado à esquerda */
+        }
         .no-visits {
             text-align: center;
             color: #777;
@@ -105,7 +119,7 @@
         .pet-selection-card img {
             width: 80px;
             height: 80px;
-            object-fit: cover;
+            object-fit: contain; /* A imagem se ajusta sem cortar */
             border-radius: 50%;
             margin-bottom: 10px;
             border: 2px solid #007bff;
@@ -153,7 +167,14 @@
             {% if visitas_agendadas %}
                 {% for visita in visitas_agendadas %}
                     <div class="visita-card">
-                        <div>
+                        {# IMAGEM DO ANIMAL ADICIONADA AQUI #}
+                        {% if visita.animal.imagem %}
+                            <img src="{{ visita.animal.imagem.url }}" alt="{{ visita.animal.nome }}">
+                        {% else %}
+                            <img src="{% static 'img/default_pet.png' %}" alt="Sem Imagem">
+                        {% endif %}
+                        
+                        <div class="visita-info"> {# Conteúdo textual da visita #}
                             <strong>Pet:</strong> {{ visita.animal.nome }}<br>
                             <strong>Data:</strong> {{ visita.data_visita|date:"d/m/Y" }}<br>
                             <strong>Hora:</strong> {{ visita.hora_visita|time:"H:i" }}<br>
