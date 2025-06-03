@@ -1,14 +1,21 @@
-# MyPet/models.py
-
 from django.db import models
-from stdimage.models import StdImageField
 from django.contrib.auth.models import User
+from stdimage.models import StdImageField
 
-# SIGNALS
+# SIGNALS (MANTIDO)
 from django.db.models import signals
 from django.template.defaultfilters import slugify
 
-class Perfil(models.Model):
+# CLASSE BASE (AJUSTADA PARA SUA VERSÃO MAIS RECENTE)
+class Base(models.Model):
+    criado = models.DateTimeField('Data de criação', auto_now_add=True)
+    modificado = models.DateTimeField('Data de atualização', auto_now=True)
+    ativo = models.BooleanField('Ativo?', default=True) # MANTIDO SEU CAMPO ATIVO
+
+    class Meta:
+        abstract = True
+
+class Perfil(Base):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     cpf = models.CharField(max_length=14)
     data_nascimento = models.DateField()
@@ -42,20 +49,12 @@ class Perfil(models.Model):
         blank=True
     )
 
-    # --- CAMPOS ADICIONAIS SUGERIDOS PARA RECOMENDAÇÃO ---
-    # Usando choices da classe Animal para manter consistência, se Animal estiver no mesmo app ou importado
-    # Importante: certifique-se de que Animal esteja definido antes ou importado corretamente.
-    
-    # Se você for usar Animal.PORTE_CHOICES, certifique-se de que Animal esteja importado.
-    # Exemplo: from .animal import Animal # Se Animal estiver em outro arquivo do mesmo app
-    # Ou apenas defina as escolhas diretamente aqui, como foi feito para TIPO_RESIDENCIA_CHOICES
-    
     PREF_PORTE_CHOICES = [
         ('pequeno', 'Pequeno'),
         ('medio', 'Médio'),
         ('grande', 'Grande'),
         ('gigante', 'Gigante'),
-        ('qualquer', 'Qualquer Porte'), # Adicionando opção 'qualquer'
+        ('qualquer', 'Qualquer Porte'),
     ]
     PREF_IDADE_CHOICES = [
         ('filhote', 'Filhote'),
@@ -73,13 +72,13 @@ class Perfil(models.Model):
         ('alguma', 'Alguma'),
         ('muita', 'Muita'),
     ]
-    TIPO_OUTROS_ANIMAIS_CHOICES = [ # Exemplo, você pode expandir
+    TIPO_OUTROS_ANIMAIS_CHOICES = [
         ('cachorro', 'Cachorro'),
         ('gato', 'Gato'),
         ('outros', 'Outros'),
         ('nao_possui', 'Não Possui'),
     ]
-    TEMPERAMENTO_OUTROS_ANIMAIS_CHOICES = [ # Exemplo
+    TEMPERAMENTO_OUTROS_ANIMAIS_CHOICES = [
         ('docil', 'Dócil'),
         ('dominante', 'Dominante'),
         ('brincalhao', 'Brincalhão'),
@@ -117,14 +116,6 @@ class Perfil(models.Model):
 
     def __str__(self):
         return self.user.username
-
-class Base(models.Model):
-    criado = models.DateTimeField('Data de criação', auto_now_add=True) # Mude de DateField para DateTimeField
-    modificado = models.DateTimeField('Data de atualização', auto_now=True) # Mude de DateField para DateTimeField
-    ativo = models.BooleanField('Ativo?', default=True)
-
-    class Meta:
-        abstract = True
 
 class Animal(Base):
     owner = models.ForeignKey(
@@ -166,7 +157,7 @@ class Animal(Base):
         ('sim', 'Sim'),
         ('nao', 'Não'),
         ('depende', 'Depende'),
-        ('nao_avaliado', 'Não Avaliado/Informado'), # Adição útil para flexibilidade
+        ('nao_avaliado', 'Não Avaliado/Informado'),
     ]
     ESPACO_CHOICES = [
         ('pequeno', 'Pouco (apartamento)'),
@@ -185,8 +176,8 @@ class Animal(Base):
     tamanho = models.CharField('Tamanho', max_length=50, null=True, blank=True)
     slug = models.SlugField('Slug', max_length=100, blank=True, editable=False)
     disponivel_adocao = models.BooleanField('Disponível para Adoção?', default=False)
+    # O campo 'ativo' já está na sua classe Base agora, então não precisa duplicar aqui.
 
-    # --- CAMPOS ADICIONAIS SUGERIDOS ---
     nivel_energia = models.CharField('Nível de Energia', max_length=50, choices=ENERGIA_CHOICES, default='medio')
     temperamento = models.CharField('Temperamento', max_length=100, help_text='Ex: Calmo, brincalhão, tímido, independente, sociável.')
     socializacao_criancas = models.CharField('Socialização com Crianças', max_length=50, choices=SOCIALIZACAO_CHOICES, default='nao_avaliado')
@@ -202,12 +193,13 @@ class Animal(Base):
     def __str__(self):
         return self.nome
 
+# SIGNAL PARA ANIMAL (MANTIDO)
 def animal_pre_save(signal, instance, sender, **kwargs):
     instance.slug = slugify(instance.nome)
 
 signals.pre_save.connect(animal_pre_save, sender=Animal)
 
-# NOVO MODELO: VISITA
+# MODELO VISITA (AJUSTADO PARA SUA VERSÃO MAIS RECENTE)
 class Visita(Base):
     solicitante = models.ForeignKey(Perfil, on_delete=models.CASCADE, verbose_name='Solicitante da Visita', related_name='visitas_solicitadas')
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE, verbose_name='Animal a ser visitado', related_name='visitas')
@@ -230,45 +222,43 @@ class Visita(Base):
     def __str__(self):
         return f"Visita para {self.animal.nome} em {self.data_visita} às {self.hora_visita} (Solicitante: {self.solicitante.user.username})"
 
-# --- NOVOS MODELOS PARA CHAT/MENSAGENS ---
+# --- MODELOS PARA CHAT/MENSAGENS (AJUSTADOS PARA SUA VERSÃO MAIS RECENTE) ---
 
 class Conversa(Base):
-    # O solicitante é quem inicia a conversa (interessado na adoção)
     solicitante = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='conversas_iniciadas', verbose_name='Solicitante')
-    # O dono é o perfil do dono do animal
     dono = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='conversas_recebidas', verbose_name='Dono do Animal')
     animal = models.ForeignKey(Animal, on_delete=models.CASCADE, verbose_name='Animal Referência')
-    ativa = models.BooleanField('Conversa Ativa?', default=True) # Para desativar conversas, se necessário
+    ativa = models.BooleanField('Conversa Ativa?', default=True)
 
     class Meta:
         verbose_name = 'Conversa de Adoção'
         verbose_name_plural = 'Conversas de Adoção'
-        # Garante que não haja conversas duplicadas entre os mesmos dois usuários sobre o mesmo animal
         unique_together = ('solicitante', 'dono', 'animal')
-        ordering = ['-modificado'] # Conversas mais recentes primeiro
+        ordering = ['-modificado']
 
     def __str__(self):
         return f"Conversa entre {self.solicitante.user.username} e {self.dono.user.username} sobre {self.animal.nome}"
 
-class Mensagem(models.Model):
-    conversa = models.ForeignKey('Conversa', on_delete=models.CASCADE, related_name='mensagens')
-    remetente = models.ForeignKey('Perfil', on_delete=models.CASCADE)
-    conteudo = models.TextField(blank=True, null=True) # Conteúdo da mensagem pode ser nulo se for só mídia
-    data_envio = models.DateTimeField(auto_now_add=True)
+class Mensagem(Base): # Mudei para herdar de Base para ter 'criado' e 'modificado'
+    conversa = models.ForeignKey(Conversa, on_delete=models.CASCADE, related_name='mensagens')
+    remetente = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='mensagens_enviadas') # Adicionado related_name
+    conteudo = models.TextField(blank=True, null=True)
+    # data_envio removido, pois 'criado' da classe Base já serve para isso
     lida = models.BooleanField(default=False)
 
-    # NOVO CAMPO: Para mídias (fotos e vídeos)
     media_file = models.FileField(upload_to='chat_media/', blank=True, null=True)
 
-    # NOVO CAMPO: Para diferenciar o tipo de mídia no template (opcional, mas útil)
     MEDIA_TYPE_CHOICES = [
         ('image', 'Imagem'),
         ('video', 'Vídeo'),
+        ('other', 'Outro'), # Adicionado 'other' para flexibilidade
     ]
     media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES, blank=True, null=True)
 
     class Meta:
-        ordering = ['data_envio']
+        verbose_name = 'Mensagem' # Adicionado verbose_name
+        verbose_name_plural = 'Mensagens' # Adicionado verbose_name_plural
+        ordering = ['criado'] # Alterado para 'criado'
 
     def __str__(self):
         if self.conteudo and self.media_file:
@@ -279,15 +269,29 @@ class Mensagem(models.Model):
             return f"Mensagem de {self.remetente.user.username} (anexo: {self.media_file.name})"
         return f"Mensagem vazia de {self.remetente.user.username}"
 
-    # Helper para verificar o tipo de mídia no template
+    # Helpers (MANTIDOS)
     def is_image(self):
         return self.media_type == 'image'
 
     def is_video(self):
         return self.media_type == 'video'
 
-    # Helper para obter a URL da mídia
     def get_media_url(self):
         if self.media_file:
             return self.media_file.url
         return None
+
+# --- NOVO MODELO PARA CACHE DE COMPATIBILIDADE DO GEMINI ---
+class CompatibilidadeGemini(Base):
+    perfil = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='compatibilidades_gemini')
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, related_name='compatibilidades_gemini')
+    pontuacao = models.IntegerField('Pontuação de Compatibilidade', default=0)
+    explicacao = models.TextField('Explicação da Compatibilidade', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Compatibilidade Gemini'
+        verbose_name_plural = 'Compatibilidades Gemini'
+        unique_together = ('perfil', 'animal') # Garante que cada par perfil-animal tenha apenas uma pontuação
+
+    def __str__(self):
+        return f"Compatibilidade entre {self.perfil.user.username} e {self.animal.nome}: {self.pontuacao}"

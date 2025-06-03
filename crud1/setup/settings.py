@@ -12,11 +12,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
-from decouple import config, Csv
+from decouple import config, Csv # Importa config e Csv de decouple
 
-from dj_database_url import parse as db_url
-
-import os
+# Nao eh mais necessario importar os ou dotenv se estiver usando decouple para tudo
+# import os 
+# from dotenv import load_dotenv 
+# load_dotenv() # Desnecessário se decouple já estiver sendo usado para carregar .env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -66,7 +67,7 @@ ROOT_URLCONF = 'setup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'MyPet', 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'MyPet', 'templates')], # os.path.join precisa de import os
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,7 +100,7 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/5.1/topics/p/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -130,7 +131,7 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
+# https://docs.djangoproject.com/en/5.1/topics/static-files/
 
 STATIC_URL = 'static/' #usado durante dev
 #STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') #usado durante prod
@@ -161,3 +162,7 @@ LOGOUT_REDIRECT_URL = 'index' # Redireciona para a página de login (index) apó
 LOGIN_URL = 'index' # Faz com que a raiz (index.html) seja a página de login
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- CONFIGURAÇÃO DA API DO GEMINI ---
+GEMINI_API_KEY = config('GOOGLE_API_KEY') # Carrega a chave da API do Gemini do .env
+# --- FIM DA CONFIGURAÇÃO DA API DO GEMINI ---

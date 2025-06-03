@@ -4,119 +4,130 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
 from .forms import CadastroUsarioForm, AnimalModelForm, VisitaForm, EditarPerfilForm, MensagemForm
-from .models import Animal, Perfil, Visita, Conversa, Mensagem
+from .models import Animal, Perfil, Visita, Conversa, Mensagem, CompatibilidadeGemini # Importe CompatibilidadeGemini
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.db.models import Q # Para consultas complexas
+from django.conf import settings # Para acessar a chave de API do settings.py
+from django.utils import timezone # Para lidar com datas e horas
 
-# Import para o envio de e-mails (ainda usado para notificação)
-from django.core.mail import send_mail
-from django.conf import settings
+# Importe a biblioteca do Google AI
+import google.generativeai as genai
+import json # Para lidar com a resposta JSON do Gemini
 
-# --- FUNÇÃO DE CÁLCULO DE COMPATIBILIDADE (NOVA) ---
-def calculate_compatibility_score(user_profile, animal):
+# --- CONFIGURAÇÃO DA API DO GEMINI ---
+# Certifique-se de que GEMINI_API_KEY está configurada no settings.py
+if settings.GEMINI_API_KEY:
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+else:
+    print("AVISO: GEMINI_API_KEY não configurada no settings.py. As recomendações da IA não funcionarão.")
+
+# --- FUNÇÃO DE CÁLCULO DE COMPATIBILIDADE (AGORA USANDO GEMINI) ---
+async def get_gemini_compatibility_score(user_profile, animal):
     """
-    Calcula uma pontuação de compatibilidade entre um perfil de usuário e um animal.
-    Quanto maior a pontuação, maior a compatibilidade.
+    Obtém a pontuação de compatibilidade e explicação do Gemini,
+    usando cache para evitar chamadas repetitivas.
     """
-    score = 0
+    # Tenta buscar a pontuação em cache
+    try:
+        compatibilidade_cache = CompatibilidadeGemini.objects.get(
+            perfil=user_profile,
+            animal=animal
+        )
+        # Verifica se o cache é recente (ex: menos de 24 horas)
+        # Ou se o perfil/animal não foi modificado desde a última avaliação
+        # Para simplificar, vamos reavaliar se o cache tiver mais de 1 dia ou se o animal/perfil tiverem sido modificados.
+        # Uma lógica mais robusta envolveria verificar 'modificado' timestamp.
+        if (timezone.now() - compatibilidade_cache.modificado).days < 1:
+            return compatibilidade_cache.pontuacao, compatibilidade_cache.explicacao
 
-    # 1. Compatibilidade de Espécie
-    if user_profile.preferencia_especie_animal == animal.especie:
-        score += 10
-    elif user_profile.preferencia_especie_animal == 'qualquer':
-        score += 5 # Neutro, mas ainda aceitável
-    else:
-        score -= 5 # Preferência diferente, mas não eliminatória
+    except CompatibilidadeGemini.DoesNotExist:
+        compatibilidade_cache = None # Não há cache, precisa gerar
 
-    # 2. Compatibilidade de Porte
-    if user_profile.preferencia_porte_animal == animal.porte:
-        score += 8
-    elif user_profile.preferencia_porte_animal == 'qualquer':
-        score += 4
-    
-    # Penalidades por porte vs. tipo de residência
-    if user_profile.tipo_residencia == 'apartamento':
-        if animal.porte == 'grande' or animal.porte == 'gigante':
-            score -= 15 # Grande penalidade
-        elif animal.porte == 'medio':
-            score -= 5
-    elif user_profile.tipo_residencia == 'casa' and (animal.porte == 'grande' or animal.porte == 'gigante'):
-        score += 3 # Casa é melhor para portes maiores
+    # Se não há cache ou o cache está desatualizado, chama o Gemini
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash') # Ou outro modelo Gemini, como 'gemini-pro'
 
-    # 3. Compatibilidade de Idade
-    # Simplificação: mapeia idade do animal para categorias (filhote, adulto, idoso)
-    animal_idade_categoria = ''
-    if animal.idade is not None:
-        if animal.especie == 'cachorro' or animal.especie == 'gato': # Exemplo de categorização, ajuste conforme necessário
-            if animal.idade < 1: # Menos de 1 ano
-                animal_idade_categoria = 'filhote'
-            elif animal.idade >= 1 and animal.idade < 8:
-                animal_idade_categoria = 'adulto'
-            else:
-                animal_idade_categoria = 'idoso'
-        else: # Para outras espécies, pode ser uma lógica diferente ou usar 'adulto' como default
-            animal_idade_categoria = 'adulto' # Default se não houver lógica específica
+        # Construa o prompt com as características do usuário e do animal
+        prompt = f"""
+        Você é um especialista em adoção de animais. Sua tarefa é avaliar a compatibilidade entre um perfil de usuário interessado em adotar e um animal disponível para adoção.
+        Forneça uma pontuação de compatibilidade de 0 a 100 (onde 100 é a compatibilidade perfeita) e uma breve explicação.
 
-    if user_profile.preferencia_idade_animal == animal_idade_categoria:
-        score += 7
-    elif user_profile.preferencia_idade_animal == 'qualquer':
-        score += 3
+        Características do Usuário:
+        - Tipo de Residência: {user_profile.get_tipo_residencia_display()}
+        - Nível de Atividade: {user_profile.get_nivel_atividade_usuario_display()}
+        - Experiência com Animais: {user_profile.get_experiencia_animais_display()}
+        - Possui Crianças: {'Sim' if user_profile.tem_criancas else 'Não'}
+        - Faixa Etária das Crianças: {user_profile.idades_criancas if user_profile.tem_criancas else 'N/A'}
+        - Possui Outros Animais: {'Sim' if user_profile.tem_outros_animais else 'Não'}
+        - Tipo de Outros Animais: {user_profile.tipo_outros_animais if user_profile.tem_outros_animais else 'N/A'}
+        - Temperamento dos Outros Animais: {user_profile.temperamento_outros_animais if user_profile.tem_outros_animais else 'N/A'}
+        - Disposto a Necessidades Especiais: {'Sim' if user_profile.disposicao_necessidades_especiais else 'Não'}
+        - Preferência de Espécie: {user_profile.get_preferencia_especie_animal_display()}
+        - Preferência de Idade do Animal: {user_profile.get_preferencia_idade_animal_display()}
+        - Preferência de Porte do Animal: {user_profile.get_preferencia_porte_animal_display()}
 
-    # 4. Compatibilidade de Nível de Energia
-    if user_profile.nivel_atividade_usuario == animal.nivel_energia:
-        score += 8
-    elif (user_profile.nivel_atividade_usuario == 'medio' and animal.nivel_energia in ['baixo', 'alto']) or \
-         (user_profile.nivel_atividade_usuario == 'alto' and animal.nivel_energia == 'medio') or \
-         (user_profile.nivel_atividade_usuario == 'baixo' and animal.nivel_energia == 'medio'):
-        score += 3 # Compatibilidade parcial
-    elif (user_profile.nivel_atividade_usuario == 'baixo' and animal.nivel_energia == 'alto') or \
-         (user_profile.nivel_atividade_usuario == 'alto' and animal.nivel_energia == 'baixo'):
-        score -= 10 # Grande penalidade por incompatibilidade de energia
+        Características do Animal ({animal.nome}):
+        - Espécie: {animal.get_especie_display()}
+        - Raça: {animal.raca}
+        - Porte: {animal.get_porte_display()}
+        - Idade: {animal.idade} ano(s) (se aplicável)
+        - Nível de Energia: {animal.get_nivel_energia_display()}
+        - Temperamento: {animal.temperamento}
+        - Socialização com Crianças: {animal.get_socializacao_criancas_display()}
+        - Socialização com Outros Animais: {animal.get_socializacao_outros_animais_display()}
+        - Possui Necessidades Especiais: {'Sim' if animal.necessidades_especiais else 'Não'}
+        - Descrição Necessidades Especiais: {animal.descricao_necessidades if animal.necessidades_especiais else 'N/A'}
+        - Necessidade de Espaço: {animal.get_necessidade_espaco_display()}
 
-    # 5. Experiência com Animais vs. Necessidades Especiais do Animal
-    if animal.necessidades_especiais:
-        if user_profile.disposicao_necessidades_especiais:
-            score += 10 # Usuário disposto e animal precisa
+        Formato da Resposta (JSON):
+        {{
+            "pontuacao": <int>,
+            "explicacao": "<string>"
+        }}
+        """
+        
+        # Chamada síncrona para o Gemini (Django não suporta async views facilmente sem ASGI)
+        # Para um ambiente de produção, considere usar Celery ou threads para chamadas de API longas.
+        response = model.generate_content(prompt)
+        
+        # Tenta parsear a resposta JSON
+        response_text = response.text.strip()
+        # O Gemini pode retornar markdown code block, tente remover
+        if response_text.startswith('```json') and response_text.endswith('```'):
+            response_text = response_text[7:-3].strip()
+
+        gemini_result = json.loads(response_text)
+        
+        pontuacao = gemini_result.get('pontuacao', 0)
+        explicacao = gemini_result.get('explicacao', 'Nenhuma explicação fornecida.')
+
+        # Salva ou atualiza o cache
+        if compatibilidade_cache:
+            compatibilidade_cache.pontuacao = pontuacao
+            compatibilidade_cache.explicacao = explicacao
+            compatibilidade_cache.save()
         else:
-            score -= 20 # Usuário não disposto e animal precisa - Forte penalidade
-    
-    if animal.necessidades_especiais and user_profile.experiencia_animais == 'muita':
-        score += 5 # Experiência ajuda com necessidades especiais
+            CompatibilidadeGemini.objects.create(
+                perfil=user_profile,
+                animal=animal,
+                pontuacao=pontuacao,
+                explicacao=explicacao
+            )
+        
+        return pontuacao, explicacao
 
-    # 6. Crianças na Casa
-    if user_profile.tem_criancas:
-        if animal.socializacao_criancas == 'sim':
-            score += 10
-        elif animal.socializacao_criancas == 'nao':
-            score -= 30 # Muito forte penalidade
-        elif animal.socializacao_criancas == 'depende':
-            score -= 5 # Penalidade leve, exige mais avaliação
-
-    # 7. Outros Animais na Casa
-    if user_profile.tem_outros_animais:
-        if animal.socializacao_outros_animais == 'sim':
-            score += 10
-        elif animal.socializacao_outros_animais == 'nao':
-            score -= 30 # Muito forte penalidade
-        elif animal.socializacao_outros_animais == 'depende':
-            score -= 5 # Penalidade leve
-
-    # 8. Temperamento (mais subjetivo, mas podemos dar pontos por alinhamento)
-    # Isso exigiria uma lógica mais complexa, mas para começar, podemos ter regras simples
-    # Ex: se o usuário prefere um animal calmo e o animal é calmo.
-    # Por enquanto, vamos deixar a compatibilidade de temperamento mais simples, ou baseada nos campos de socialização.
-    # Se você tiver um campo de preferência de temperamento no Perfil, adicione aqui.
-
-    return score
+    except Exception as e:
+        print(f"Erro ao chamar a API do Gemini ou parsear resposta: {e}")
+        # Retorna uma pontuação neutra/baixa em caso de erro
+        return 0, "Erro ao gerar compatibilidade via IA."
 
 
 def cadastro(request):
     form = CadastroUsarioForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
-            # A lógica de salvar o Perfil já está no método save do forms.py
             form.save()
             messages.success(request, 'Usuário cadastrado com sucesso! Faça login.')
             return redirect('index')
@@ -248,9 +259,9 @@ def animal(request):
             except Perfil.DoesNotExist:
                 messages.error(request, 'Erro: Perfil do usuário não encontrado ao salvar animal.')
                 return redirect('telaprincipal')
-        else:
-            messages.error(request, 'Falha ao salvar animal! Verifique os dados.')
-            print("Erros do formulário Animal:", form.errors)
+            else:
+                messages.error(request, 'Falha ao salvar animal! Verifique os dados.')
+                print("Erros do formulário Animal:", form.errors)
     else:
         form = AnimalModelForm()
     context = {
@@ -260,40 +271,43 @@ def animal(request):
 
 
 @login_required
-def muralpets(request):
+async def muralpets(request): # Alterado para async para permitir await na chamada Gemini
     # Tenta obter o perfil do usuário logado
     perfil_usuario = None
     try:
         perfil_usuario = Perfil.objects.get(user=request.user)
     except Perfil.DoesNotExist:
         messages.warning(request, 'Para melhores recomendações, complete seu perfil!')
-        # Se o perfil não existir, ainda mostra todos os animais, mas sem ordenação por compatibilidade
         animais_para_adocao = Animal.objects.filter(disponivel_adocao=True, ativo=True).order_by('nome')
         context = {
             'animais': animais_para_adocao,
-            'perfil_completo': False # Indica que o perfil não está completo
+            'perfil_completo': False
         }
         return render(request, "muralpets.html", context)
 
-    # Se o perfil do usuário existe, calcula a compatibilidade
+    # Se o perfil do usuário existe, calcula a compatibilidade usando Gemini
     animais_disponiveis = Animal.objects.filter(disponivel_adocao=True, ativo=True)
     
-    # Lista para armazenar tuplas (pontuação, animal)
     animais_com_pontuacao = []
 
     for animal in animais_disponiveis:
-        score = calculate_compatibility_score(perfil_usuario, animal)
-        animais_com_pontuacao.append((score, animal))
+        # Chama a função assíncrona para obter a pontuação do Gemini
+        pontuacao_gemini, explicacao_gemini = await get_gemini_compatibility_score(perfil_usuario, animal)
+        
+        # Anexa a pontuação e a explicação ao objeto animal temporariamente para ordenação e exibição
+        animal.gemini_pontuacao = pontuacao_gemini
+        animal.gemini_explicacao = explicacao_gemini
+        
+        animais_com_pontuacao.append((pontuacao_gemini, animal))
 
     # Ordena os animais pela pontuação de compatibilidade (do maior para o menor)
     animais_com_pontuacao.sort(key=lambda x: x[0], reverse=True)
 
-    # Extrai apenas os objetos Animal da lista ordenada
     animais_ordenados = [animal for score, animal in animais_com_pontuacao]
 
     context = {
         'animais': animais_ordenados,
-        'perfil_completo': True # Indica que o perfil está completo
+        'perfil_completo': True
     }
     return render(request, "muralpets.html", context)
 
@@ -383,13 +397,11 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
     ).first()
 
     if request.method == 'POST':
-        # IMPORTANTE: Incluir request.FILES para lidar com uploads de arquivos
         form = MensagemForm(request.POST, request.FILES) 
         if form.is_valid():
             conteudo = form.cleaned_data.get('conteudo')
             media_file = form.cleaned_data.get('media_file')
 
-            # Uma mensagem deve ter conteúdo OU um arquivo de mídia
             if not conteudo and not media_file:
                 messages.error(request, "A mensagem não pode ser vazia. Digite algo ou anexe uma foto/vídeo.")
                 context = {
@@ -401,7 +413,6 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
                 return render(request, 'iniciar_chat.html', context)
 
             if not conversa_existente:
-                # Se não existe, cria uma nova conversa
                 conversa = Conversa.objects.create(
                     solicitante=solicitante_perfil,
                     dono=dono_perfil,
@@ -411,7 +422,6 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
             else:
                 conversa = conversa_existente
 
-            # Cria a nova mensagem
             nova_mensagem = Mensagem(
                 conversa=conversa,
                 remetente=solicitante_perfil,
@@ -420,18 +430,15 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
 
             if media_file:
                 nova_mensagem.media_file = media_file
-                # Determinar o tipo de mídia (básico, pode ser melhorado com bibliotecas como python-magic)
                 if media_file.content_type.startswith('image'):
                     nova_mensagem.media_type = 'image'
                 elif media_file.content_type.startswith('video'):
                     nova_mensagem.media_type = 'video'
                 else:
-                    # Tratar outros tipos, ou ignorar, ou definir como 'other'
-                    nova_mensagem.media_type = None # Ou 'other' dependendo da sua regra
+                    nova_mensagem.media_type = None 
 
             nova_mensagem.save()
 
-            # Notifica o dono do animal por e-mail (opcional, mas boa prática)
             assunto = f"Nova Mensagem sobre {animal.nome} - MyPet"
             corpo_email = f"""
             Olá, {dono_perfil.user.first_name if dono_perfil.user.first_name else dono_perfil.user.username},
@@ -456,23 +463,21 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
         else:
             messages.error(request, 'Erro ao enviar mensagem. Verifique os dados do formulário.')
             print("Erros do formulário de mensagem em iniciar_chat:", form.errors)
-            # A chave é re-renderizar a página com o formulário que contém os erros
             context = {
                 'dono_perfil': dono_perfil,
                 'animal': animal,
-                'form': form, # Passa o formulário inválido de volta ao template
+                'form': form,
                 'conversa_existente': conversa_existente
             }
             return render(request, 'iniciar_chat.html', context)
     else:
-        # Se for GET, prepara o formulário para a primeira mensagem
         form = MensagemForm()
 
     context = {
         'dono_perfil': dono_perfil,
         'animal': animal,
         'form': form,
-        'conversa_existente': conversa_existente # Para exibir uma nota se já existe conversa
+        'conversa_existente': conversa_existente
     }
     return render(request, 'iniciar_chat.html', context)
 
@@ -481,17 +486,12 @@ def iniciar_chat(request, dono_perfil_id, animal_id):
 def lista_chats(request):
     perfil_usuario = get_object_or_404(Perfil, user=request.user)
 
-    # Conversas onde o usuário é o solicitante OU o dono
-    # Usando Q para combinar as condições OR
     conversas = Conversa.objects.filter(
         Q(solicitante=perfil_usuario) | Q(dono=perfil_usuario),
-        ativa=True # Apenas conversas ativas
-    ).order_by('-modificado') # Ordena pelas mais recentes
+        ativa=True
+    ).order_by('-modificado')
 
-    # Marcar mensagens não lidas
     for conversa in conversas:
-        # Verifica se há mensagens não lidas enviadas pelo *outro* participante
-        # para o perfil_usuario logado.
         conversa.tem_nao_lidas = Mensagem.objects.filter(
             conversa=conversa,
             lida=False
@@ -509,41 +509,33 @@ def detalhes_chat(request, conversa_id):
     perfil_usuario = get_object_or_404(Perfil, user=request.user)
     conversa = get_object_or_404(Conversa, id=conversa_id)
 
-    # Garante que apenas os participantes da conversa possam acessá-la
     if not (conversa.solicitante == perfil_usuario or conversa.dono == perfil_usuario):
         messages.error(request, "Você não tem permissão para acessar esta conversa.")
         return redirect('lista_chats')
 
-    # Marca as mensagens não lidas do *outro* participante como lidas
-    # Se o usuário logado é o dono, marca as mensagens do solicitante como lidas
     if conversa.dono == perfil_usuario:
         conversa.mensagens.filter(remetente=conversa.solicitante, lida=False).update(lida=True)
-    # Se o usuário logado é o solicitante, marca as mensagens do dono como lidas
     elif conversa.solicitante == perfil_usuario:
         conversa.mensagens.filter(remetente=conversa.dono, lida=False).update(lida=True)
 
-    mensagens = conversa.mensagens.all() # Todas as mensagens da conversa
+    mensagens = conversa.mensagens.all()
 
     if request.method == 'POST':
-        # IMPORTANTE: Incluir request.FILES para lidar com uploads de arquivos
         form = MensagemForm(request.POST, request.FILES) 
         if form.is_valid():
             conteudo = form.cleaned_data.get('conteudo')
             media_file = form.cleaned_data.get('media_file')
 
-            # Uma mensagem deve ter conteúdo OU um arquivo de mídia
             if not conteudo and not media_file:
                 messages.error(request, "A mensagem não pode ser vazia. Digite algo ou anexe uma foto/vídeo.")
-                # Se a mensagem é inválida, re-renderiza a página com o formulário e os erros
                 context = {
                     'conversa': conversa,
                     'mensagens': mensagens,
-                    'form': form, # Passa o formulário com os erros
+                    'form': form,
                     'perfil_usuario': perfil_usuario,
                     'outro_participante': conversa.solicitante if perfil_usuario == conversa.dono else conversa.dono,
                 }
                 return render(request, 'detalhes_chat.html', context)
-
 
             nova_mensagem = Mensagem(
                 conversa=conversa,
@@ -553,20 +545,16 @@ def detalhes_chat(request, conversa_id):
 
             if media_file:
                 nova_mensagem.media_file = media_file
-                # Determinar o tipo de mídia (básico, pode ser melhorado com bibliotecas)
                 if media_file.content_type.startswith('image'):
                     nova_mensagem.media_type = 'image'
                 elif media_file.content_type.startswith('video'):
                     nova_mensagem.media_type = 'video'
                 else:
-                    # Pode definir como 'other' ou deixar nulo se não for imagem/vídeo
                     nova_mensagem.media_type = None 
 
             nova_mensagem.save()
             messages.success(request, 'Mensagem enviada com sucesso!')
 
-            # Opcional: Notificar o outro participante por e-mail sobre a nova mensagem
-            # Identifica o destinatário
             destinatario_perfil = conversa.solicitante if perfil_usuario == conversa.dono else conversa.dono
             assunto_notificacao = f"Nova resposta na conversa sobre {conversa.animal.nome} - MyPet"
             corpo_notificacao = f"""
@@ -587,12 +575,10 @@ def detalhes_chat(request, conversa_id):
                 messages.warning(request, f'Mensagem enviada, mas houve um erro ao enviar a notificação por e-mail: {e}')
                 print(f"Erro ao enviar e-mail de notificação de resposta: {e}")
 
-            return redirect('detalhes_chat', conversa_id=conversa.id) # Redireciona para atualizar as mensagens
+            return redirect('detalhes_chat', conversa_id=conversa.id)
         else:
             messages.error(request, 'Erro ao enviar mensagem. Verifique os dados do formulário.')
             print("Erros do formulário de mensagem em detalhes_chat:", form.errors)
-            # Se o formulário for inválido, re-renderiza a página com o formulário e os erros
-            # Identifica o outro participante da conversa para exibir seu perfil
             if conversa.solicitante == perfil_usuario:
                 outro_participante = conversa.dono
             else:
@@ -600,8 +586,8 @@ def detalhes_chat(request, conversa_id):
 
             context = {
                 'conversa': conversa,
-                'mensagens': mensagens, # Para manter as mensagens existentes
-                'form': form, # Passa o formulário com os erros de volta
+                'mensagens': mensagens,
+                'form': form,
                 'perfil_usuario': perfil_usuario,
                 'outro_participante': outro_participante,
             }
@@ -609,7 +595,6 @@ def detalhes_chat(request, conversa_id):
     else:
         form = MensagemForm()
 
-    # Identifica o outro participante da conversa para exibir seu perfil
     if conversa.solicitante == perfil_usuario:
         outro_participante = conversa.dono
     else:
@@ -619,27 +604,25 @@ def detalhes_chat(request, conversa_id):
         'conversa': conversa,
         'mensagens': mensagens,
         'form': form,
-        'perfil_usuario': perfil_usuario, # Perfil do usuário logado
-        'outro_participante': outro_participante, # Perfil do outro usuário na conversa
+        'perfil_usuario': perfil_usuario,
+        'outro_participante': outro_participante,
     }
     return render(request, 'detalhes_chat.html', context)
 
 # --- NOVO: Visualizar Perfil Público de Outro Usuário ---
 @login_required
-def detalhes_perfil_publico(request, perfil_id, animal_id=None): # Adicionado animal_id como opcional
-    # Apenas visualiza perfis que não sejam o do usuário logado
+def detalhes_perfil_publico(request, perfil_id, animal_id=None):
     perfil = get_object_or_404(Perfil, id=perfil_id)
     animal = None
     if animal_id:
         animal = get_object_or_404(Animal, id=animal_id)
 
-    # Impede que o usuário veja seu próprio perfil por esta URL (use editar_perfil para isso)
     if perfil.user == request.user:
         messages.info(request, "Você está visualizando seu próprio perfil. Use 'Editar Perfil' para fazer alterações.")
-        return redirect('editar_perfil') # Redireciona para a página de edição se for o próprio perfil
+        return redirect('editar_perfil')
 
     context = {
         'perfil': perfil,
-        'animal': animal, # Passa o objeto animal para o template
+        'animal': animal,
     }
     return render(request, 'detalhes_perfil_publico.html', context)
