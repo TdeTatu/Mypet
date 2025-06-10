@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Little Pet - Meus Pets</title>
-    {% load static %} {# ESSENCIAL para usar {% static %} #}
-    {# Se você usa Bootstrap CSS aqui, adicione a linha: {% load bootstrap4 %} e {% bootstrap_css %} #}
+    {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <style>
         /* Estilos básicos para os pets (adapte ao seu CSS) */
@@ -18,7 +17,7 @@
             align-items: center;
             gap: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas menores */
+            flex-wrap: wrap; 
         }
         .pet-card img {
             width: 100px;
@@ -26,21 +25,24 @@
             object-fit: cover;
             border-radius: 50%;
             border: 2px solid #007bff;
-            flex-shrink: 0; /* Impede que a imagem encolha */
+            flex-shrink: 0;
         }
         .pet-details {
-            flex-grow: 1; /* Permite que os detalhes ocupem o espaço restante */
-            text-align: left; /* Alinha o texto à esquerda */
+            flex-grow: 1; 
+            text-align: left;
+            min-width: 200px; /* Garante uma largura mínima para evitar que seja espremido */
+            /* --- CORREÇÃO ADICIONADA AQUI --- */
+            overflow-wrap: break-word; /* Força a quebra de palavras longas para não saírem do card */
         }
         .pet-details h3 {
             margin-top: 0;
             color: #333;
-            font-size: 1.3em; /* Ajuste para melhor legibilidade */
+            font-size: 1.3em; 
         }
         .pet-details p {
             margin: 5px 0;
             color: #555;
-            font-size: 0.95em; /* Ajuste para melhor legibilidade */
+            font-size: 0.95em;
         }
         .no-pets {
             text-align: center;
@@ -65,7 +67,6 @@
         .messages .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
         .messages .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
 
-        /* Estilos para o cabeçalho principal */
         header {
             display: flex;
             align-items: center;
@@ -82,7 +83,7 @@
             text-align: center;
             margin: 0;
             color: #333;
-            font-size: 2.5rem; /* Mantém o tamanho do h1 do seu styles.css */
+            font-size: 2.5rem; 
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 3px;
@@ -90,7 +91,7 @@
         }
 
         .back-button {
-            background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
+            background-color: #ff5722; 
             color: white;
             padding: 8px 15px;
             border: none;
@@ -98,7 +99,7 @@
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.3s ease;
-            text-transform: uppercase; /* Para combinar com o estilo do seu botão */
+            text-transform: uppercase;
         }
 
         .back-button:hover {
@@ -113,7 +114,7 @@
             color: #555;
         }
         .warning-text {
-            color: #e67e22; /* Laranja para avisos */
+            color: #e67e22;
             font-weight: bold;
         }
         .small-text {
@@ -139,7 +140,6 @@
         {% endif %}
 
         <div id="lista-pets">
-            {# Lógica para exibir pets do banco de dados #}
             {% if pets %}
                 {% for pet in pets %}
                     <div class="pet-card">
@@ -160,11 +160,12 @@
                             <p><span class="info-label">Tamanho:</span> <span class="info-value">{{ pet.tamanho|default:"Não informado" }}</span></p>
                             <p><span class="info-label">Disponível para Adoção:</span> <span class="info-value">{% if pet.disponivel_adocao %}Sim{% else %}Não{% endif %}</span></p>
 
-                            <hr> {# Separador para as novas informações #}
+                            <hr>
                             <h4>Características Adicionais</h4>
                             <p><span class="info-label">Nível de Energia:</span> <span class="info-value">{{ pet.get_nivel_energia_display }}</span></p>
-                            <p><span class="info-label">Temperamento:</span> <span class="info-value">{{ pet.temperamento|default:"Não informado" }}</span></p>
                             
+                            <p><span class="info-label">Temperamento:</span> <span class="info-value">{{ pet.get_temperamento_formatado }}</span></p>
+
                             {% if pet.socializacao_criancas != 'nao_avaliado' %}
                                 <p><span class="info-label">Socializa com Crianças:</span> <span class="info-value">{{ pet.get_socializacao_criancas_display }}</span></p>
                             {% endif %}
@@ -182,8 +183,6 @@
                             {% endif %}
                             
                             <button onclick="window.location.href='{% url 'acompanhamento' %}'">Acompanhar</button>
-                            {# Você pode adicionar um link para detalhes do pet aqui, se tiver uma view para isso #}
-                            {# Exemplo: <a href="{% url 'detalhes_animal' pet.id %}"><button>Ver Detalhes</button></a> #}
                         </div>
                     </div>
                 {% endfor %}

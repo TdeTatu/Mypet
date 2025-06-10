@@ -6,11 +6,59 @@ from stdimage.models import StdImageField
 from django.db.models import signals
 from django.template.defaultfilters import slugify
 
-# CLASSE BASE (AJUSTADA PARA SUA VERSÃO MAIS RECENTE)
+# --- NOVAS OPÇÕES DE ESCOLHA PADRONIZADAS (ADICIONADAS AQUI) ---
+TEMPERAMENTO_ANIMAL_CHOICES = [
+    ('calmo', 'Calmo'),
+    ('brincalhao', 'Brincalhão'),
+    ('timido', 'Tímido'),
+    ('independente', 'Independente'),
+    ('sociável_humanos', 'Sociável com Humanos'),
+    ('sociável_animais', 'Sociável com Outros Animais'),
+    ('agitado', 'Agitado'),
+    ('ansioso_separacao', 'Ansiedade de Separação'),
+    ('vocal', 'Vocal (Late/Mia Muito)'),
+    ('destrutivo', 'Destrutivo'),
+    ('ciumento', 'Ciumento'),
+    ('protetor', 'Protetor'),
+    ('medroso', 'Medroso'),
+    ('reservado', 'Reservado'),
+    ('adaptavel', 'Adaptável'),
+    ('necessita_lideranca', 'Necessita Liderança/Experiência'),
+    ('agressivo_animais', 'Agressivo com Outros Animais'), # Crítico
+    ('agressivo_humanos', 'Agressivo com Humanos'), # Crítico
+    ('agressivo_estranhos', 'Agressivo com Estranhos'), # Crítico
+    ('reativo', 'Reativo (a estímulos)'),
+    ('nao_avaliado', 'Não Avaliado/Informado'), # Manter, para IA considerar risco
+    ('desconhecido', 'Desconhecido'), # Manter, para IA considerar risco
+]
+
+TEMPERAMENTO_OUTROS_ANIMAIS_SELECAO_CHOICES = [
+    ('docil', 'Dócil'),
+    ('dominante', 'Dominante'),
+    ('brincalhao', 'Brincalhão'),
+    ('competitivo', 'Competitivo'),
+    ('reservado', 'Reservado'),
+    ('ansioso', 'Ansioso'),
+    ('reativo', 'Reativo'),
+    ('nao_se_aplica', 'Não se Aplica (se não houver animais)'),
+    ('nao_avaliado', 'Não Avaliado/Informado'),
+]
+
+FAIXA_ETARIA_CRIANCAS_CHOICES = [
+    ('0_2', '0-2 anos (Bebês/Crianças de colo)'),
+    ('3_5', '3-5 anos (Crianças pequenas)'),
+    ('6_12', '6-12 anos (Crianças em idade escolar)'),
+    ('13_17', '13-17 anos (Adolescentes)'),
+    ('nao_se_aplica', 'Não se Aplica (Não possui crianças)'),
+]
+# --- FIM DAS NOVAS OPÇÕES DE ESCOLHA ---
+
+
+# CLASSE BASE
 class Base(models.Model):
     criado = models.DateTimeField('Data de criação', auto_now_add=True)
     modificado = models.DateTimeField('Data de atualização', auto_now=True)
-    ativo = models.BooleanField('Ativo?', default=True) # MANTIDO SEU CAMPO ATIVO
+    ativo = models.BooleanField('Ativo?', default=True)
 
     class Meta:
         abstract = True
@@ -78,12 +126,7 @@ class Perfil(Base):
         ('outros', 'Outros'),
         ('nao_possui', 'Não Possui'),
     ]
-    TEMPERAMENTO_OUTROS_ANIMAIS_CHOICES = [
-        ('docil', 'Dócil'),
-        ('dominante', 'Dominante'),
-        ('brincalhao', 'Brincalhão'),
-        ('nao_se_aplica', 'Não se Aplica'),
-    ]
+    # TEMPERAMENTO_OUTROS_ANIMAIS_CHOICES (originalmente aqui, mas agora padronizada globalmente)
     PREF_ESPECIE_CHOICES = [
         ('cachorro', 'Cachorro'),
         ('gato', 'Gato'),
@@ -102,11 +145,29 @@ class Perfil(Base):
     experiencia_animais = models.CharField('Experiência Prévia com Animais', max_length=50, choices=EXPERIENCIA_CHOICES, default='alguma')
     
     tem_criancas = models.BooleanField('Possui Crianças em Casa?', default=False)
-    idades_criancas = models.CharField('Faixa Etária das Crianças (se houver)', max_length=100, null=True, blank=True, help_text='Ex: 0-5, 6-12, 13+ ou "Não se aplica"')
+    
+    # --- ALTERADO: idades_criancas para permitir múltiplas seleções padronizadas ---
+    idades_criancas = models.CharField(
+        'Faixa Etária das Crianças (se houver)',
+        max_length=255, # Aumentar o tamanho para acomodar múltiplos valores separados por vírgula
+        null=True,
+        blank=True,
+        choices=FAIXA_ETARIA_CRIANCAS_CHOICES, # Usando as novas escolhas
+        help_text='Selecione as faixas etárias das crianças em casa (múltiplas escolhas, ex: 0-2 anos, 6-12 anos)'
+    )
     
     tem_outros_animais = models.BooleanField('Possui Outros Animais de Estimação?', default=False)
     tipo_outros_animais = models.CharField('Tipo de Outros Animais (se houver)', max_length=100, null=True, blank=True, choices=TIPO_OUTROS_ANIMAIS_CHOICES)
-    temperamento_outros_animais = models.CharField('Temperamento dos Outros Animais (se houver)', max_length=100, null=True, blank=True, choices=TEMPERAMENTO_OUTROS_ANIMAIS_CHOICES)
+    
+    # --- ALTERADO: temperamento_outros_animais para permitir múltiplas seleções padronizadas ---
+    temperamento_outros_animais = models.CharField(
+        'Temperamento dos Outros Animais (se houver)',
+        max_length=255, # Aumentar o tamanho para acomodar múltiplos valores separados por vírgula
+        null=True,
+        blank=True,
+        choices=TEMPERAMENTO_OUTROS_ANIMAIS_SELECAO_CHOICES, # Usando as novas escolhas
+        help_text='Selecione os temperamentos dos outros animais (múltiplas escolhas)'
+    )
     
     disposicao_necessidades_especiais = models.BooleanField('Disposto(a) a Adotar Animal com Necessidades Especiais?', default=False)
 
@@ -116,6 +177,33 @@ class Perfil(Base):
 
     def __str__(self):
         return self.user.username
+
+    # --- NOVOS MÉTODOS PARA EXIBIÇÃO DE MÚLTIPLAS ESCOLHAS ---
+    def get_idades_criancas_display_list(self):
+        """Retorna uma lista de rótulos legíveis para as faixas etárias das crianças."""
+        if self.idades_criancas:
+            selected_values = self.idades_criancas.split(',')
+            display_list = []
+            for val in selected_values:
+                for choice_value, choice_label in FAIXA_ETARIA_CRIANCAS_CHOICES:
+                    if choice_value == val:
+                        display_list.append(choice_label)
+                        break
+            return display_list
+        return []
+
+    def get_temperamento_outros_animais_display_list(self):
+        """Retorna uma lista de rótulos legíveis para os temperamentos de outros animais."""
+        if self.temperamento_outros_animais:
+            selected_values = self.temperamento_outros_animais.split(',')
+            display_list = []
+            for val in selected_values:
+                for choice_value, choice_label in TEMPERAMENTO_OUTROS_ANIMAIS_SELECAO_CHOICES:
+                    if choice_value == val:
+                        display_list.append(choice_label)
+                        break
+            return display_list
+        return []
 
 class Animal(Base):
     owner = models.ForeignKey(
@@ -176,10 +264,17 @@ class Animal(Base):
     tamanho = models.CharField('Tamanho', max_length=50, null=True, blank=True)
     slug = models.SlugField('Slug', max_length=100, blank=True, editable=False)
     disponivel_adocao = models.BooleanField('Disponível para Adoção?', default=False)
-    # O campo 'ativo' já está na sua classe Base agora, então não precisa duplicar aqui.
 
     nivel_energia = models.CharField('Nível de Energia', max_length=50, choices=ENERGIA_CHOICES, default='medio')
-    temperamento = models.CharField('Temperamento', max_length=100, help_text='Ex: Calmo, brincalhão, tímido, independente, sociável.')
+    
+    # --- ALTERADO: temperamento para usar CHOICES padronizadas (ainda CharField, mas manipulado no form) ---
+    temperamento = models.CharField(
+        'Temperamento',
+        max_length=255, # Aumentar o tamanho para acomodar múltiplos valores separados por vírgula
+        choices=TEMPERAMENTO_ANIMAL_CHOICES, # Usando as novas escolhas
+        help_text='Selecione os temperamentos que melhor descrevem o animal (múltiplas escolhas)'
+    )
+    
     socializacao_criancas = models.CharField('Socialização com Crianças', max_length=50, choices=SOCIALIZACAO_CHOICES, default='nao_avaliado')
     socializacao_outros_animais = models.CharField('Socialização com Outros Animais', max_length=50, choices=SOCIALIZACAO_CHOICES, default='nao_avaliado')
     necessidades_especiais = models.BooleanField('Possui Necessidades Especiais?', default=False)
@@ -192,6 +287,20 @@ class Animal(Base):
 
     def __str__(self):
         return self.nome
+
+    # --- NOVO MÉTODO PARA EXIBIÇÃO DE MÚLTIPLAS ESCOLHAS ---
+    def get_temperamento_display_list(self):
+        """Retorna uma lista de rótulos legíveis para os temperamentos do animal."""
+        if self.temperamento:
+            selected_values = self.temperamento.split(',')
+            display_list = []
+            for val in selected_values:
+                for choice_value, choice_label in TEMPERAMENTO_ANIMAL_CHOICES:
+                    if choice_value == val:
+                        display_list.append(choice_label)
+                        break
+            return display_list
+        return []
 
 # SIGNAL PARA ANIMAL (MANTIDO)
 def animal_pre_save(signal, instance, sender, **kwargs):
@@ -239,11 +348,10 @@ class Conversa(Base):
     def __str__(self):
         return f"Conversa entre {self.solicitante.user.username} e {self.dono.user.username} sobre {self.animal.nome}"
 
-class Mensagem(Base): # Mudei para herdar de Base para ter 'criado' e 'modificado'
+class Mensagem(Base):
     conversa = models.ForeignKey(Conversa, on_delete=models.CASCADE, related_name='mensagens')
-    remetente = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='mensagens_enviadas') # Adicionado related_name
+    remetente = models.ForeignKey(Perfil, on_delete=models.CASCADE, related_name='mensagens_enviadas')
     conteudo = models.TextField(blank=True, null=True)
-    # data_envio removido, pois 'criado' da classe Base já serve para isso
     lida = models.BooleanField(default=False)
 
     media_file = models.FileField(upload_to='chat_media/', blank=True, null=True)
@@ -251,14 +359,14 @@ class Mensagem(Base): # Mudei para herdar de Base para ter 'criado' e 'modificad
     MEDIA_TYPE_CHOICES = [
         ('image', 'Imagem'),
         ('video', 'Vídeo'),
-        ('other', 'Outro'), # Adicionado 'other' para flexibilidade
+        ('other', 'Outro'),
     ]
     media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES, blank=True, null=True)
 
     class Meta:
-        verbose_name = 'Mensagem' # Adicionado verbose_name
-        verbose_name_plural = 'Mensagens' # Adicionado verbose_name_plural
-        ordering = ['criado'] # Alterado para 'criado'
+        verbose_name = 'Mensagem'
+        verbose_name_plural = 'Mensagens'
+        ordering = ['criado']
 
     def __str__(self):
         if self.conteudo and self.media_file:
@@ -269,7 +377,7 @@ class Mensagem(Base): # Mudei para herdar de Base para ter 'criado' e 'modificad
             return f"Mensagem de {self.remetente.user.username} (anexo: {self.media_file.name})"
         return f"Mensagem vazia de {self.remetente.user.username}"
 
-    # Helpers (MANTIDOS)
+    # Helpers
     def is_image(self):
         return self.media_type == 'image'
 
@@ -291,7 +399,7 @@ class CompatibilidadeGemini(Base):
     class Meta:
         verbose_name = 'Compatibilidade Gemini'
         verbose_name_plural = 'Compatibilidades Gemini'
-        unique_together = ('perfil', 'animal') # Garante que cada par perfil-animal tenha apenas uma pontuação
+        unique_together = ('perfil', 'animal')
 
     def __str__(self):
         return f"Compatibilidade entre {self.perfil.user.username} e {self.animal.nome}: {self.pontuacao}"

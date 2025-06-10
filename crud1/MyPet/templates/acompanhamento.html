@@ -13,22 +13,25 @@
         /* Estilos básicos para o container, pode adaptar ao seu styles.css */
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
         .container { max-width: 900px; margin: 0 auto; padding: 25px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        header { text-align: center; margin-bottom: 30px; }
-        h1 { color: #333; margin-bottom: 20px; }
+        header { text-align: center; margin-bottom: 30px; position: relative; padding-top: 20px;} /* Ajustado para posicionar o botão de voltar */
+        header h1 { color: #333; margin-bottom: 20px; }
         .back-button {
-            background-color: #007bff;
+            background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
             color: white;
             padding: 8px 15px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-bottom: 20px;
-            float: left; /* Para posicionar à esquerda do título */
+            font-size: 1em;
             text-decoration: none;
             display: inline-block;
             transition: background-color 0.3s ease;
+            /* Posicionamento absoluto dentro do header para ficar no canto superior esquerdo */
+            position: absolute;
+            top: 10px; /* Ajuste conforme necessário */
+            left: 10px; /* Ajuste conforme necessário */
         }
-        .back-button:hover { background-color: #0056b3; }
+        .back-button:hover { background-color: #d45e1d; }
         .form-section, .list-section {
             background-color: #f9f9f9;
             border: 1px solid #eee;
@@ -72,7 +75,6 @@
             border: 2px solid #28a745; /* Borda na cor de sucesso */
             flex-shrink: 0; /* Impede que a imagem encolha */
         }
-        .visita-card strong { color: #28a745; }
         .visita-info { /* Para envolver os detalhes do texto */
             flex-grow: 1; /* Permite que o texto ocupe o espaço restante */
             text-align: left; /* Garante que o texto seja alinhado à esquerda */
@@ -129,6 +131,21 @@
             margin-bottom: 5px;
             color: #444;
         }
+        /* Ajuste para o botão de voltar no cabeçalho */
+        .container header {
+            position: relative; /* Necessário para posicionar o botão de voltar absoluto */
+            padding-left: 70px; /* Para dar espaço ao botão de voltar */
+        }
+        .container header h1 {
+            flex-grow: 1;
+        }
+        .no-pets-mural {
+            text-align: center;
+            padding: 20px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            color: #777;
+        }
     </style>
 </head>
 <body>
@@ -157,7 +174,7 @@
             {% else %}
                 <div class="no-pets-mural">
                     <p>Você precisa cadastrar um pet para poder agendar um acompanhamento para ele.</p>
-                    <p><a href="{% url 'cadastro_pet' %}" class="btn btn-primary">Cadastrar Novo Pet</a></p>
+                    <button onclick="window.location.href='{% url 'cadastro_pet' %}'">Cadastrar Novo Pet</button>
                 </div>
             {% endif %}
         </div>
@@ -184,7 +201,11 @@
                             {% endif %}
                         </div>
                         {# Você pode adicionar botões para editar/cancelar aqui se desejar #}
-                        {# <button class="btn btn-sm btn-danger">Cancelar</button> #}
+                        {# Por exemplo: #}
+                        {# <div class="visita-actions"> #}
+                        {#     <a href="{% url 'editar_visita' visita.id %}" class="btn btn-sm btn-info">Editar</a> #}
+                        {#     <a href="{% url 'cancelar_visita' visita.id %}" class="btn btn-sm btn-danger">Cancelar</a> #}
+                        {# </div> #}
                     </div>
                 {% endfor %}
             {% else %}
@@ -207,7 +228,7 @@
                                 <img src="{% static 'img/default_pet.png' %}" alt="Sem Imagem">
                             {% endif %}
                             <h4>{{ pet.nome }}</h4>
-                            <p>{{ pet.especie }} - {{ pet.raca }}</p>
+                            <p>{{ pet.get_especie_display }} - {{ pet.raca }}</p> {# Usando get_especie_display #}
                         </div>
                     {% endfor %}
                 </div>

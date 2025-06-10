@@ -187,7 +187,8 @@
                     <hr> {# Separador para as novas informações #}
                     <h3>Características Adicionais</h3>
                     <p><span class="info-label">Nível de Energia:</span> <span class="info-value">{{ animal.get_nivel_energia_display }}</span></p>
-                    <p><span class="info-label">Temperamento:</span> <span class="info-value">{{ animal.temperamento|default:"Não informado" }}</span></p>
+                    {# CORRIGIDO: Temperamento agora usa o novo método get_temperamento_display_list #}
+                    <p><span class="info-label">Temperamento:</span> <span class="info-value">{{ animal.get_temperamento_display_list|join:", " }}</span></p>
                     
                     {% if animal.socializacao_criancas != 'nao_avaliado' %}
                         <p><span class="info-label">Socializa com Crianças:</span> <span class="info-value">{{ animal.get_socializacao_criancas_display }}</span></p>
@@ -229,7 +230,8 @@
                         {% if dono_perfil.tem_criancas %}
                             <p><span class="info-label">Possui Crianças:</span> <span class="info-value">Sim</span></p>
                             {% if dono_perfil.idades_criancas %}
-                                <p class="small-text">Faixa Etária: {{ dono_perfil.idades_criancas }}</p>
+                                {# CORRIGIDO: idades_criancas agora usa o método do modelo para exibição amigável #}
+                                <p class="small-text">Faixa Etária: {{ dono_perfil.get_idades_criancas_display_list|join:", " }}</p>
                             {% endif %}
                         {% else %}
                             <p><span class="info-label">Possui Crianças:</span> <span class="info-value">Não</span></p>
@@ -238,7 +240,10 @@
                         {% if dono_perfil.tem_outros_animais %}
                             <p><span class="info-label">Possui Outros Animais:</span> <span class="info-value">Sim</span></p>
                             {% if dono_perfil.tipo_outros_animais %}<p class="small-text">Tipo: {{ dono_perfil.tipo_outros_animais }}</p>{% endif %}
-                            {% if dono_perfil.temperamento_outros_animais %}<p class="small-text">Temperamento: {{ dono_perfil.temperamento_outros_animais }}</p>{% endif %}
+                            {% if dono_perfil.temperamento_outros_animais %}
+                                {# CORRIGIDO: temperamento_outros_animais agora usa o método do modelo para exibição amigável #}
+                                <p class="small-text">Temperamento: {{ dono_perfil.get_temperamento_outros_animais_display_list|join:", " }}</p>
+                            {% endif %}
                         {% else %}
                             <p><span class="info-label">Possui Outros Animais:</span> <span class="info-value">Não</span></p>
                         {% endif %}

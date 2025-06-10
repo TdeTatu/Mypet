@@ -170,22 +170,15 @@
                                     
                                     {# NOVAS INFORMAÇÕES DE COMPATIBILIDADE #}
                                     <p><strong>Energia:</strong> {{ animal.get_nivel_energia_display }}</p>
-                                    <p><strong>Temperamento:</strong> {{ animal.temperamento }}</p>
-                                    {# Mostra socialização apenas se for 'sim' ou 'nao' #}
-                                    {% if animal.socializacao_criancas == 'sim' %}
-                                        <p><strong>Com Crianças:</strong> Sim</p>
-                                    {% elif animal.socializacao_criancas == 'nao' %}
-                                        <p><strong>Com Crianças:</strong> Não</p>
-                                    {% elif animal.socializacao_criancas == 'depende' %}
-                                        <p><strong>Com Crianças:</strong> Depende (ver detalhes)</p>
+                                    {# CORRIGIDO: Temperamento agora usa o novo método get_temperamento_display_list #}
+                                    <p><strong>Temperamento:</strong> {{ animal.get_temperamento_display_list|join:", " }}</p>
+                                    
+                                    {# Mostra socialização apenas se for 'sim' ou 'nao' ou 'depende' #}
+                                    {% if animal.socializacao_criancas != 'nao_avaliado' %}
+                                        <p><strong>Com Crianças:</strong> {{ animal.get_socializacao_criancas_display }}</p>
                                     {% endif %}
-
-                                    {% if animal.socializacao_outros_animais == 'sim' %}
-                                        <p><strong>Com Outros Animais:</strong> Sim</p>
-                                    {% elif animal.socializacao_outros_animais == 'nao' %}
-                                        <p><strong>Com Outros Animais:</strong> Não</p>
-                                    {% elif animal.socializacao_outros_animais == 'depende' %}
-                                        <p><strong>Com Outros Animais:</strong> Depende (ver detalhes)</p>
+                                    {% if animal.socializacao_outros_animais != 'nao_avaliado' %}
+                                        <p><strong>Com Outros Animais:</strong> {{ animal.get_socializacao_outros_animais_display }}</p>
                                     {% endif %}
 
                                     {% if animal.necessidades_especiais %}

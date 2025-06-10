@@ -11,13 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
 from decouple import config, Csv # Importa config e Csv de decouple
-
-# Nao eh mais necessario importar os ou dotenv se estiver usando decouple para tudo
-# import os 
-# from dotenv import load_dotenv 
-# load_dotenv() # Desnecessário se decouple já estiver sendo usado para carregar .env
+import os # Necessário para os.path.join
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#Debug true pra dev; debug false pra prod
+# Debug true pra dev; debug false pra prod
 DEBUG = config("DEBUG", cast=bool, default=True)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", cast=Csv())
@@ -67,7 +62,7 @@ ROOT_URLCONF = 'setup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'MyPet', 'templates')], # os.path.join precisa de import os
+        'DIRS': [os.path.join(BASE_DIR, 'MyPet', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -100,7 +95,7 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.1/topics/p/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/5.1/topics/password-validation/
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -133,23 +128,32 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/topics/static-files/
 
-STATIC_URL = 'static/' #usado durante dev
-#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') #usado durante prod
+STATIC_URL = 'static/' # Usado durante dev
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Usado durante prod
 
 # Media Files (user-uploaded files)
 MEDIA_URL = '/media/' # URL para servir arquivos de mídia
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # Diretório onde os arquivos de mídia serão armazenados
 
-#CONFIGURAÇÕES DE EMAIL
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# --- CONFIGURAÇÕES DE EMAIL ---
+# Para desenvolvimento, use o backend de console (imprime no terminal)
+# Em produção, você deverá configurar um servidor SMTP real.
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = config('EMAIL_HOST')
+    EMAIL_PORT = config('EMAIL_PORT', cast=int)
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
+    EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False) # Geralmente False se EMAIL_USE_TLS for True
+    SERVER_EMAIL = config('SERVER_EMAIL', default=EMAIL_HOST_USER) # Email para o qual erros são enviados
 
-"""
-EMAIL_HOST = 'localhost'
-EMAIL_HOST_USER = 'no.reply@seudominio.com.br'
-EMAIL_PORT = 587
-EMAIL_USER_TSL = True
-EMAIL_HOST_PASSWORD = 'sua-senha'
-"""
+# Email padrão que será usado como remetente nas suas notificações
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@example.com')
+# --- FIM DAS CONFIGURAÇÕES DE EMAIL ---
+
 
 # IMPORTANTE: A URL para onde o Django redireciona após um login bem-sucedido
 LOGIN_REDIRECT_URL = 'telaprincipal'

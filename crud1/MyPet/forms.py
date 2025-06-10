@@ -3,7 +3,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Animal, Perfil, Visita, Conversa, Mensagem # Importe os modelos atualizados
+# Importe as novas CHOICES junto com os modelos
+from .models import Animal, Perfil, Visita, Conversa, Mensagem, \
+    TEMPERAMENTO_ANIMAL_CHOICES, TEMPERAMENTO_OUTROS_ANIMAIS_SELECAO_CHOICES, FAIXA_ETARIA_CRIANCAS_CHOICES 
 
 class CadastroUsarioForm(UserCreationForm):
     nome = forms.CharField(label='Nome Completo', max_length=255)
@@ -23,43 +25,51 @@ class CadastroUsarioForm(UserCreationForm):
         widget=forms.Select
     )
 
-    # --- NOVOS CAMPOS DE PREFERÊNCIA PARA O CADASTRO INICIAL (adicionados aqui) ---
+    foto_perfil = forms.ImageField(
+        label='Foto de Perfil (Opcional)',
+        required=False,
+        widget=forms.FileInput
+    )
+
     preferencia_especie_animal = forms.ChoiceField(
         label='Espécie de Animal Preferida',
-        choices=Perfil.PREF_ESPECIE_CHOICES, # Usando as choices definidas no modelo Perfil
+        choices=Perfil.PREF_ESPECIE_CHOICES,
         initial='qualquer'
     )
     preferencia_idade_animal = forms.ChoiceField(
         label='Idade Preferencial do Animal',
-        choices=Perfil.PREF_IDADE_CHOICES, # Usando as choices definidas no modelo Perfil
+        choices=Perfil.PREF_IDADE_CHOICES,
         initial='qualquer'
     )
     preferencia_porte_animal = forms.ChoiceField(
         label='Porte Preferencial do Animal',
-        choices=Perfil.PREF_PORTE_CHOICES, # Usando as choices definidas no modelo Perfil
+        choices=Perfil.PREF_PORTE_CHOICES,
         initial='qualquer'
     )
     nivel_atividade_usuario = forms.ChoiceField(
         label='Seu Nível de Atividade',
-        choices=Perfil.ATIVIDADE_USUARIO_CHOICES, # Usando as choices definidas no modelo Perfil
+        choices=Perfil.ATIVIDADE_USUARIO_CHOICES,
         initial='medio'
     )
     experiencia_animais = forms.ChoiceField(
         label='Experiência Prévia com Animais',
-        choices=Perfil.EXPERIENCIA_CHOICES, # Usando as choices definidas no modelo Perfil
+        choices=Perfil.EXPERIENCIA_CHOICES,
         initial='alguma'
     )
     
     tem_criancas = forms.BooleanField(
         label='Possui Crianças em Casa?',
-        required=False, # Não é obrigatório marcar, pois pode ser falso
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}) # Adiciona classe para estilização, se houver
-    )
-    idades_criancas = forms.CharField(
-        label='Faixa Etária das Crianças (se houver)',
-        max_length=100,
         required=False,
-        help_text='Ex: 0-5, 6-12, 13+ ou deixe em branco se não houver'
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    # Campo idades_criancas agora é MultipleChoiceField
+    idades_criancas = forms.MultipleChoiceField(
+        label='Faixa Etária das Crianças (se houver)',
+        choices=FAIXA_ETARIA_CRIANCAS_CHOICES, # Usando as CHOICES importadas
+        required=False,
+        widget=forms.CheckboxSelectMultiple, # Para permitir múltiplas seleções como checkboxes
+        help_text='Selecione as faixas etárias das crianças em casa (múltiplas escolhas)'
     )
     
     tem_outros_animais = forms.BooleanField(
@@ -67,17 +77,20 @@ class CadastroUsarioForm(UserCreationForm):
         required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-    tipo_outros_animais = forms.CharField(
+    
+    tipo_outros_animais = forms.ChoiceField( # Mantido ChoiceField como no modelo para única seleção, se precisar de múltipla, seria MultipleChoiceField
         label='Tipo de Outros Animais (se houver)',
-        max_length=100,
+        choices=Perfil.TIPO_OUTROS_ANIMAIS_CHOICES,
         required=False,
-        help_text='Ex: Cachorro, gato, peixe'
     )
-    temperamento_outros_animais = forms.CharField(
+    
+    # Campo temperamento_outros_animais agora é MultipleChoiceField
+    temperamento_outros_animais = forms.MultipleChoiceField(
         label='Temperamento dos Outros Animais (se houver)',
-        max_length=100,
+        choices=TEMPERAMENTO_OUTROS_ANIMAIS_SELECAO_CHOICES, # Usando as CHOICES importadas
         required=False,
-        help_text='Ex: Dócil, dominante, brincalhão'
+        widget=forms.CheckboxSelectMultiple, # Para permitir múltiplas seleções
+        help_text='Selecione os temperamentos dos outros animais (múltiplas escolhas)'
     )
     
     disposicao_necessidades_especiais = forms.BooleanField(
@@ -85,13 +98,12 @@ class CadastroUsarioForm(UserCreationForm):
         required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-    # --- FIM DOS NOVOS CAMPOS PARA CADASTRO INICIAL ---
 
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + (
             'nome', 'cpf', 'data_de_nasc', 'telefone', 'endereco', 'genero', 'tipo_residencia',
-            # Adicionando os novos campos de preferência na meta fields para que sejam processados
+            'foto_perfil',
             'preferencia_especie_animal', 'preferencia_idade_animal', 'preferencia_porte_animal',
             'nivel_atividade_usuario', 'experiencia_animais', 'tem_criancas', 'idades_criancas',
             'tem_outros_animais', 'tipo_outros_animais', 'temperamento_outros_animais',
@@ -105,52 +117,81 @@ class CadastroUsarioForm(UserCreationForm):
             raise forms.ValidationError("CPF deve conter 11 dígitos.")
         return cpf
 
+    # Sobrescreve o método clean para converter as listas de múltiplas escolhas em strings
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Converte a lista de 'idades_criancas' em string separada por vírgula
+        if 'idades_criancas' in cleaned_data and cleaned_data['idades_criancas']:
+            cleaned_data['idades_criancas'] = ','.join(cleaned_data['idades_criancas'])
+        else:
+            cleaned_data['idades_criancas'] = ''
+
+        # Converte a lista de 'temperamento_outros_animais' em string separada por vírgula
+        if 'temperamento_outros_animais' in cleaned_data and cleaned_data['temperamento_outros_animais']:
+            cleaned_data['temperamento_outros_animais'] = ','.join(cleaned_data['temperamento_outros_animais'])
+        else:
+            cleaned_data['temperamento_outros_animais'] = ''
+        
+        return cleaned_data
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.first_name = self.cleaned_data.get('nome', '')
         if commit:
             user.save()
-            Perfil.objects.create(
-                user=user,
-                cpf=self.cleaned_data['cpf'],
-                data_nascimento=self.cleaned_data['data_de_nasc'],
-                genero=self.cleaned_data['genero'],
-                telefone=self.cleaned_data['telefone'],
-                endereco=self.cleaned_data['endereco'],
-                tipo_residencia=self.cleaned_data['tipo_residencia'],
-                # --- Salvando os novos campos de preferência ---
-                preferencia_especie_animal=self.cleaned_data['preferencia_especie_animal'],
-                preferencia_idade_animal=self.cleaned_data['preferencia_idade_animal'],
-                preferencia_porte_animal=self.cleaned_data['preferencia_porte_animal'],
-                nivel_atividade_usuario=self.cleaned_data['nivel_atividade_usuario'],
-                experiencia_animais=self.cleaned_data['experiencia_animais'],
-                tem_criancas=self.cleaned_data['tem_criancas'],
-                idades_criancas=self.cleaned_data.get('idades_criancas', ''), # Use .get() para campos não obrigatórios
-                tem_outros_animais=self.cleaned_data['tem_outros_animais'],
-                tipo_outros_animais=self.cleaned_data.get('tipo_outros_animais', ''),
-                temperamento_outros_animais=self.cleaned_data.get('temperamento_outros_animais', ''),
-                disposicao_necessidades_especiais=self.cleaned_data['disposicao_necessidades_especiais']
-                # --- FIM do salvamento dos novos campos ---
-            )
+            perfil_data = {
+                'user': user,
+                'cpf': self.cleaned_data['cpf'],
+                'data_nascimento': self.cleaned_data['data_de_nasc'],
+                'genero': self.cleaned_data['genero'],
+                'telefone': self.cleaned_data['telefone'],
+                'endereco': self.cleaned_data['endereco'],
+                'tipo_residencia': self.cleaned_data['tipo_residencia'],
+                'preferencia_especie_animal': self.cleaned_data['preferencia_especie_animal'],
+                'preferencia_idade_animal': self.cleaned_data['preferencia_idade_animal'],
+                'preferencia_porte_animal': self.cleaned_data['preferencia_porte_animal'],
+                'nivel_atividade_usuario': self.cleaned_data['nivel_atividade_usuario'],
+                'experiencia_animais': self.cleaned_data['experiencia_animais'],
+                'tem_criancas': self.cleaned_data['tem_criancas'],
+                'idades_criancas': self.cleaned_data['idades_criancas'], # Já é string separada por vírgula
+                'tem_outros_animais': self.cleaned_data['tem_outros_animais'],
+                'tipo_outros_animais': self.cleaned_data.get('tipo_outros_animais', ''),
+                'temperamento_outros_animais': self.cleaned_data['temperamento_outros_animais'], # Já é string
+                'disposicao_necessidades_especiais': self.cleaned_data['disposicao_necessidades_especiais']
+            }
+            
+            foto_perfil_file = self.cleaned_data.get('foto_perfil')
+            if foto_perfil_file:
+                perfil_data['foto_perfil'] = foto_perfil_file
+
+            Perfil.objects.create(**perfil_data)
         return user
 
 
 class AnimalModelForm(forms.ModelForm):
+    # ... (o campo temperamento continua definido aqui) ...
+    temperamento = forms.MultipleChoiceField(
+        label='Temperamento',
+        choices=TEMPERAMENTO_ANIMAL_CHOICES,
+        required=True, 
+        widget=forms.CheckboxSelectMultiple,
+        help_text='Selecione os temperamentos que melhor descrevem o animal (múltiplas escolhas)'
+    )
+
     class Meta:
         model = Animal
         fields = (
             'nome', 'especie', 'raca', 'porte', 'sexo',
             'dt_nascimento', 'imagem', 'idade', 'cor', 'tamanho',
             'disponivel_adocao',
-            # --- NOVOS CAMPOS PARA ANIMAL ---
             'nivel_energia',
-            'temperamento',
+            # 'temperamento',  <- REMOVA ESTA LINHA
             'socializacao_criancas',
             'socializacao_outros_animais',
             'necessidades_especiais',
             'descricao_necessidades',
             'necessidade_espaco',
-            # --- FIM DOS NOVOS CAMPOS ---
         )
         widgets = {
             'dt_nascimento': forms.DateInput(attrs={'type': 'date'}),
@@ -161,16 +202,39 @@ class AnimalModelForm(forms.ModelForm):
             'imagem': 'Foto do Animal',
             'idade': 'Idade (anos ou meses)',
             'disponivel_adocao': 'Disponível para Adoção?',
-            # --- RÓTULOS PARA NOVOS CAMPOS DE ANIMAL ---
             'nivel_energia': 'Nível de Energia',
-            'temperamento': 'Temperamento (ex: calmo, brincalhão)',
             'socializacao_criancas': 'Socializa com Crianças?',
             'socializacao_outros_animais': 'Socializa com Outros Animais?',
             'necessidades_especiais': 'Possui Necessidades Especiais?',
             'descricao_necessidades': 'Descrição das Necessidades Especiais',
             'necessidade_espaco': 'Necessidade de Espaço',
-            # --- FIM DOS RÓTULOS ---
         }
+    
+    # Sobrescreve o __init__ para popular o MultipleChoiceField com valores existentes ao editar um animal
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.temperamento:
+            # Converte a string separada por vírgulas de volta para uma lista
+            self.initial['temperamento'] = self.instance.temperamento.split(',')
+
+    # Sobrescreve o método save para converter a lista de volta para string antes de salvar
+    def save(self, commit=True):
+        # Pega a instância do modelo sem salvar no banco de dados ainda
+        instance = super().save(commit=False)
+
+        # Pega a LISTA de temperamentos já validada do cleaned_data
+        temperamentos_list = self.cleaned_data.get('temperamento', [])
+        
+        # Converte a lista em uma string separada por vírgulas
+        instance.temperamento = ','.join(temperamentos_list)
+
+        # Salva a instância no banco de dados se commit for True
+        if commit:
+            instance.save()
+            # self.save_m2m() # Necessário apenas se o formulário tivesse campos ManyToMany
+        
+        return instance
+
 
 class VisitaForm(forms.ModelForm):
     class Meta:
@@ -198,6 +262,24 @@ class VisitaForm(forms.ModelForm):
             self.fields['animal'].queryset = Animal.objects.none()
 
 class EditarPerfilForm(forms.ModelForm):
+    # Campo idades_criancas agora é MultipleChoiceField
+    idades_criancas = forms.MultipleChoiceField(
+        label='Faixa Etária das Crianças (se houver)',
+        choices=FAIXA_ETARIA_CRIANCAS_CHOICES, # Usando as CHOICES importadas
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text='Selecione as faixas etárias das crianças em casa (múltiplas escolhas)'
+    )
+
+    # Campo temperamento_outros_animais agora é MultipleChoiceField
+    temperamento_outros_animais = forms.MultipleChoiceField(
+        label='Temperamento dos Outros Animais (se houver)',
+        choices=TEMPERAMENTO_OUTROS_ANIMAIS_SELECAO_CHOICES, # Usando as CHOICES importadas
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text='Selecione os temperamentos dos outros animais (múltiplas escolhas)'
+    )
+
     class Meta:
         model = Perfil
         fields = (
@@ -208,7 +290,6 @@ class EditarPerfilForm(forms.ModelForm):
             'endereco',
             'tipo_residencia',
             'foto_perfil',
-            # --- NOVOS CAMPOS DE PREFERÊNCIA PARA O PERFIL ---
             'preferencia_especie_animal',
             'preferencia_idade_animal',
             'preferencia_porte_animal',
@@ -220,18 +301,14 @@ class EditarPerfilForm(forms.ModelForm):
             'tipo_outros_animais',
             'temperamento_outros_animais',
             'disposicao_necessidades_especiais',
-            # --- FIM DOS NOVOS CAMPOS ---
         )
         widgets = {
             'data_nascimento': forms.DateInput(attrs={'type': 'date'}),
-            'idades_criancas': forms.TextInput(attrs={'placeholder': 'Ex: 0-5, 6-12, 13+'}),
             'tipo_outros_animais': forms.TextInput(attrs={'placeholder': 'Ex: Cachorro, gato, peixe'}),
-            'temperamento_outros_animais': forms.TextInput(attrs={'placeholder': 'Ex: Dócil, dominante, brincalhão'}),
         }
         labels = {
             'data_nascimento': 'Data de Nascimento',
             'foto_perfil': 'Foto de Perfil',
-            # --- RÓTULOS PARA NOVOS CAMPOS DE PREFERÊNCIA ---
             'preferencia_especie_animal': 'Espécie de Animal Preferida',
             'preferencia_idade_animal': 'Idade Preferencial do Animal',
             'preferencia_porte_animal': 'Porte Preferencial do Animal',
@@ -243,8 +320,36 @@ class EditarPerfilForm(forms.ModelForm):
             'tipo_outros_animais': 'Tipo de Outros Animais (se houver)',
             'temperamento_outros_animais': 'Temperamento dos Outros Animais (se houver)',
             'disposicao_necessidades_especiais': 'Disposto(a) a Adotar Animal com Necessidades Especiais?',
-            # --- FIM DOS RÓTULOS ---
         }
+
+    # Sobrescreve o __init__ para popular os MultipleChoiceFields com valores existentes
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance: # Se estiver editando um perfil existente
+            # Converte a string separada por vírgulas de volta para uma lista
+            if self.instance.idades_criancas:
+                self.initial['idades_criancas'] = self.instance.idades_criancas.split(',')
+            if self.instance.temperamento_outros_animais:
+                self.initial['temperamento_outros_animais'] = self.instance.temperamento_outros_animais.split(',')
+
+    # Sobrescreve o método clean para converter as listas de múltiplas escolhas em strings
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Converte a lista de 'idades_criancas' em string separada por vírgula
+        if 'idades_criancas' in cleaned_data and cleaned_data['idades_criancas']:
+            cleaned_data['idades_criancas'] = ','.join(cleaned_data['idades_criancas'])
+        else:
+            cleaned_data['idades_criancas'] = ''
+
+        # Converte a lista de 'temperamento_outros_animais' em string separada por vírgula
+        if 'temperamento_outros_animais' in cleaned_data and cleaned_data['temperamento_outros_animais']:
+            cleaned_data['temperamento_outros_animais'] = ','.join(cleaned_data['temperamento_outros_animais'])
+        else:
+            cleaned_data['temperamento_outros_animais'] = ''
+        
+        return cleaned_data
+
 
 class MensagemForm(forms.ModelForm):
     conteudo = forms.CharField(

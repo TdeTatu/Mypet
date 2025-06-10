@@ -5,60 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Pet</title>
     {% load static %}
-    {% load bootstrap4 %} {# ESSENCIAL para estilizar o formulário #}
+    {% load bootstrap4 %}
 
-    {% bootstrap_css %} {# Inclui o CSS do Bootstrap #}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}"> {# Seu CSS customizado #}
+    {% bootstrap_css %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <style>
-        /* Adicione estilos específicos para form-check se não estiverem no seu styles.css */
-        .form-check {
-            display: flex; /* Usa flexbox para alinhar checkbox e label */
-            align-items: center; /* Centraliza verticalmente */
-            margin-bottom: 1rem; /* Espaço abaixo da checkbox */
-        }
-        .form-check input[type="checkbox"] {
-            width: auto; /* Remove a largura 100% que pode vir de estilos gerais */
-            margin-right: 0.5rem; /* Espaço entre a checkbox e o label */
-        }
-        .form-check label {
-            margin-bottom: 0; /* Remove margem inferior padrão de label */
-            font-weight: normal; /* O label da checkbox geralmente não é negrito */
-        }
-        /* Ajustes gerais para o container e header se forem diferentes do styles.css */
+        /* Seus estilos CSS podem permanecer como estão */
         .container {
             width: 100%;
             max-width: 500px;
-            margin: 20px auto; /* Centraliza o container */
+            margin: 20px auto;
             padding: 30px;
             background-color: #fff;
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        .container h1 {
             text-align: center;
         }
-
         header {
             display: flex;
             align-items: center;
             justify-content: flex-start;
             margin-bottom: 20px;
-            background-color: #f0f0f0;
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
         header h1 {
             flex-grow: 1;
-            text-align: center;
             margin: 0;
-            color: #333;
-            font-size: 2.5rem; /* Mantém o tamanho do h1 do seu styles.css */
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
-
         .back-button {
             background-color: #ff5722;
             color: white;
@@ -69,10 +43,16 @@
             font-size: 1em;
             transition: background-color 0.3s ease;
             text-transform: uppercase;
+            margin-right: 20px; /* Adiciona espaço entre o botão e o título */
         }
-
         .back-button:hover {
             background-color: #d45e1d;
+        }
+        /* Estilo para labels de grupos de checkbox */
+        .form-group > label {
+           font-weight: bold;
+           display: block;
+           margin-bottom: .5rem;
         }
     </style>
 </head>
@@ -84,9 +64,9 @@
         </header>
 
         {% if messages %}
-            <ul class="messages">
+            <ul class="messages list-unstyled">
                 {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    <li class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}" role="alert">{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
@@ -94,49 +74,37 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-            {# Renderiza todos os campos exceto 'necessidades_especiais' e 'descricao_necessidades' #}
+            {# Loop para renderizar campos com a lógica correta #}
             {% for field in form %}
-                {% if field.name == 'necessidades_especiais' %}
+                {# Verifica se o widget é um CheckboxInput (para campos como 'disponivel_adocao') #}
+                {% if field.widget.input_type == 'checkbox' %}
                     <div class="form-group">
-                        <div class="form-check">
-                            {{ field }} {# Renderiza a checkbox #}
-                            <label class="form-check-label" for="{{ field.id_for_label }}">
-                                {{ field.label }}
-                            </label>
-                        </div>
-                        {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text }}</small>
-                        {% endif %}
-                        {% if field.errors %}
-                            {% for error in field.errors %}
-                                <div class="invalid-feedback d-block">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
+                        {% bootstrap_field field show_label=False %} {# Renderiza o campo com bootstrap, mas esconde o label padrão #}
                     </div>
-                {% elif field.name == 'descricao_necessidades' %}
-                    <div class="form-group">
-                        {{ field.label_tag }} {# Renderiza o label (texto) #}
-                        {{ field }} {# Renderiza o textarea #}
-                        {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text }}</small>
-                        {% endif %}
-                        {% if field.errors %}
-                            {% for error in field.errors %}
-                                <div class="invalid-feedback d-block">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
+                {# Verifica se o widget é um CheckboxSelectMultiple (para campos como 'temperamento') #}
+                {% elif field.widget.template_name == 'django/forms/widgets/checkbox_select.html' %}
+                     <div class="form-group">
+                        <label>{{ field.label }}</label>
+                        {% for checkbox in field %}
+                            <div class="form-check">
+                                {{ checkbox.tag }}
+                                <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                        {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                        {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
                     </div>
+                {# Renderiza todos os outros campos normalmente #}
                 {% else %}
-                    {# Renderiza os outros campos normalmente usando bootstrap_field para cada um #}
                     {% bootstrap_field field %}
                 {% endif %}
             {% endfor %}
             
-            <button type="submit" class="btn btn-primary">Cadastrar Pet</button>
+            <button type="submit" class="btn btn-primary btn-lg mt-3 w-100">Cadastrar Pet</button>
         </form>
     </div>
 
-    {% bootstrap_jquery %} {# Inclui jQuery necessário para Bootstrap (se usar componentes JS) #}
-    {% bootstrap_javascript %} {# Inclui o JavaScript do Bootstrap #}
+    {% bootstrap_jquery %}
+    {% bootstrap_javascript %}
 </body>
 </html>

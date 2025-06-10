@@ -5,44 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Perfil</title>
     {% load static %}
+    {% load bootstrap4 %} {# Adicionado para usar as tags de template do Bootstrap #}
+
+    {% bootstrap_css %} {# Inclui o CSS do Bootstrap #}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <style>
-        /* Estilos específicos para o container e header, se não estiverem no styles.css */
+        /* Seus estilos específicos para o container, header, etc. */
+        body {
+            background-color: #f8f9fa; /* Um fundo claro para a página */
+        }
         .container {
-            max-width: 700px; /* Ajuste o tamanho do container se necessário */
+            max-width: 700px;
             margin: 20px auto;
             padding: 30px;
             background-color: #fff;
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-            text-align: center;
+            text-align: center; /* Centraliza o conteúdo principal */
         }
-
         header {
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* Alinha o botão de voltar à esquerda */
+            justify-content: flex-start;
             margin-bottom: 20px;
             background-color: #f0f0f0;
             padding: 10px 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
         header h1 {
-            flex-grow: 1; /* Faz o título ocupar o espaço restante */
-            text-align: center; /* Centraliza o título */
+            flex-grow: 1;
+            text-align: center;
             margin: 0;
             color: #333;
-            font-size: 2.5rem; /* Mantém o tamanho do h1 do seu styles.css */
+            font-size: 2.5rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 3px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
-
         .back-button {
-            background-color: #ff5722; /* Cor laranja suave para o botão de voltar */
+            background-color: #ff5722;
             color: white;
             padding: 8px 15px;
             border: none;
@@ -50,90 +53,142 @@
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.3s ease;
-            text-transform: uppercase; /* Para combinar com o estilo do seu botão */
+            text-transform: uppercase;
         }
-
         .back-button:hover {
             background-color: #d45e1d;
         }
-
-        /* Estilos para a foto de perfil */
         .profile-image-display {
             width: 150px;
             height: 150px;
             object-fit: cover;
             border-radius: 50%;
             margin-bottom: 20px;
-            border: 3px solid #6200ea; /* Borda para destacar a imagem */
+            border: 3px solid #6200ea;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        /* Ajustes para os formulários renderizados por as_p */
-        form p {
-            margin-bottom: 15px; /* Espaçamento entre os campos */
+        /* Ajustes para formulário com Bootstrap */
+        .form-group {
+            margin-bottom: 1rem; /* Espaçamento padrão do Bootstrap */
+            text-align: left; /* Alinha labels e campos à esquerda */
         }
-        form label {
-            display: block; /* Garante que o label fique acima do input */
-            margin-bottom: 5px;
+        .form-group label {
+            display: block; /* Garante que o label ocupe sua própria linha */
+            margin-bottom: .5rem;
             font-weight: bold;
-            color: #555;
-            text-align: left; /* Alinha labels à esquerda */
+            color: #333; /* Cor mais escura para labels */
         }
-        form input[type="text"],
-        form input[type="email"],
-        form input[type="date"],
-        form input[type="tel"],
-        form select,
-        form textarea {
-            width: calc(100% - 24px); /* Ajusta a largura para considerar o padding */
-            padding: 12px;
-            margin: 0; /* Remove margem padrão do input */
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-            font-family: 'Montserrat', sans-serif;
-            box-sizing: border-box; /* Inclui padding e border na largura total */
+        /* Ajusta o estilo dos inputs, selects e textareas para corresponder ao Bootstrap */
+        .form-group input:not([type="checkbox"]):not([type="radio"]),
+        .form-group select,
+        .form-group textarea {
+            display: block; /* Ocupa a largura total disponível */
+            width: 100%;
+            padding: 0.375rem 0.75rem; /* Padding padrão do Bootstrap */
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            box-sizing: border-box; /* Adicionado para incluir padding e border no width */
         }
-        form input[type="checkbox"] {
-            width: auto; /* Checkbox não deve ter 100% de largura */
-            margin-right: 10px;
-        }
-        form .form-check { /* Estilo para o checkbox, se você tiver um container específico */
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-        form .helptext {
-            font-size: 0.85em;
-            color: #777;
-            margin-top: 5px;
-            text-align: left;
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
 
-        /* Estilo para o botão de salvar */
+        /* Estilo para checkboxes individuais e seus labels */
+        .form-check {
+            display: flex; /* Usa flexbox para alinhar checkbox e label */
+            align-items: center; /* Centraliza verticalmente */
+            margin-bottom: 0.5rem; /* Espaço abaixo da checkbox */
+            padding-left: 1.25rem; /* Espaço para o input da checkbox */
+        }
+        .form-check input[type="checkbox"] {
+            margin-left: -1.25rem; /* Compensa o padding-left do .form-check */
+            margin-right: 0.5rem; /* Espaço entre a checkbox e o label */
+            width: auto; /* Garante que a largura da checkbox não seja 100% */
+        }
+        .form-check label {
+            margin-bottom: 0; /* Remove margem inferior padrão de label */
+            font-weight: normal; /* O label da checkbox geralmente não é negrito */
+            cursor: pointer; /* Indica que é clicável */
+            color: #495057; /* Cor do texto do label */
+        }
+        .helptext {
+            font-size: 0.875em; /* Tamanho da fonte padrão do Bootstrap para helptext */
+            color: #6c757d; /* Cor padrão do Bootstrap para helptext */
+            margin-top: 0.25rem;
+            display: block; /* Garante que o helptext fique abaixo do campo */
+        }
+        .text-danger {
+            color: #dc3545; /* Cor vermelha padrão do Bootstrap para erros */
+            font-size: 0.875em;
+            margin-top: 0.25rem;
+            display: block; /* Garante que o erro fique abaixo do campo */
+        }
         .save-button {
             background-color: #6200ea;
             color: white;
-            font-size: 16px;
+            font-size: 1.1em; /* Um pouco maior que o padrão */
             font-weight: bold;
             border: none;
             padding: 10px 20px;
-            border-radius: 6px;
+            border-radius: 0.5rem; /* Arredondamento padrão do Bootstrap */
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.3s ease;
-            margin-top: 20px; /* Mais espaço acima do botão */
+            margin-top: 20px;
             text-transform: uppercase;
         }
-
         .save-button:hover {
             background-color: #3700b3;
             transform: translateY(-2px);
         }
-
         .save-button:active {
             background-color: #03dac5;
             transform: translateY(2px);
+        }
+
+        /* Estilo para mensagens Django */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
+        .messages li {
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            text-align: left; /* Alinha as mensagens à esquerda */
+        }
+        .messages .success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .messages .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .messages .info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        .messages .warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
         }
     </style>
 </head>
@@ -160,19 +215,128 @@
                 {% if perfil.foto_perfil %}
                     <img src="{{ perfil.foto_perfil.url }}" alt="Foto de Perfil" class="profile-image-display">
                 {% else %}
-                    <p>Nenhuma foto de perfil.</p>
+                    {# Usar uma imagem padrão se não houver foto de perfil #}
+                    <img src="{% static 'img/default_profile.png' %}" alt="Foto Padrão de Perfil" class="profile-image-display">
                 {% endif %}
 
-                {# Renderiza todos os campos do formulário como parágrafos #}
-                {# O form.as_p já irá renderizar os labels e inputs automaticamente #}
-                {{ form.as_p }} 
+                {# Renderiza os campos do formulário usando a tag bootstrap_field ou manualmente para checkboxes #}
+                {# Campos básicos do perfil #}
+                {% bootstrap_field form.cpf %}
+                {% bootstrap_field form.data_nascimento %}
+                {% bootstrap_field form.genero %}
+                {% bootstrap_field form.telefone %}
+                {% bootstrap_field form.endereco %}
+                {% bootstrap_field form.tipo_residencia %}
+                {% bootstrap_field form.foto_perfil %}
+
+                <h3>Suas Preferências de Adoção</h3>
+                {# Preferências de espécie, idade, porte, atividade e experiência podem usar bootstrap_field #}
+                {% bootstrap_field form.preferencia_especie_animal %}
+                {% bootstrap_field form.preferencia_idade_animal %}
+                {% bootstrap_field form.preferencia_porte_animal %}
+                {% bootstrap_field form.nivel_atividade_usuario %}
+                {% bootstrap_field form.experiencia_animais %}
+                
+                {# Checkbox simples (BooleanField) para 'tem_criancas' #}
+                <div class="form-group">
+                    <div class="form-check">
+                        {{ form.tem_criancas.tag }} {# Renderiza o input type="checkbox" #}
+                        <label class="form-check-label" for="{{ form.tem_criancas.id_for_label }}">
+                            {{ form.tem_criancas.label }}
+                        </label>
+                    </div>
+                    {% if form.tem_criancas.help_text %}
+                        <small class="form-text text-muted">{{ form.tem_criancas.help_text }}</small>
+                    {% endif %}
+                    {% if form.tem_criancas.errors %}
+                        {% for error in form.tem_criancas.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                {# MultipleChoiceField para 'idades_criancas' #}
+                <div class="form-group">
+                    <label>{{ form.idades_criancas.label }}</label>
+                    {% for checkbox in form.idades_criancas %}
+                        <div class="form-check">
+                            {{ checkbox.tag }} {# Renderiza cada checkbox individual #}
+                            <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                        </div>
+                    {% endfor %}
+                    {% if form.idades_criancas.errors %}<div class="text-danger d-block">{{ form.idades_criancas.errors }}</div>{% endif %}
+                    {% if form.idades_criancas.help_text %}<small class="form-text text-muted">{{ form.idades_criancas.help_text }}</small>{% endif %}
+                </div>
+                
+                {# Checkbox simples (BooleanField) para 'tem_outros_animais' #}
+                <div class="form-group">
+                    <div class="form-check">
+                        {{ form.tem_outros_animais.tag }}
+                        <label class="form-check-label" for="{{ form.tem_outros_animais.id_for_label }}">
+                            {{ form.tem_outros_animais.label }}
+                        </label>
+                    </div>
+                    {% if form.tem_outros_animais.help_text %}
+                        <small class="form-text text-muted">{{ form.tem_outros_animais.help_text }}</small>
+                    {% endif %}
+                    {% if form.tem_outros_animais.errors %}
+                        {% for error in form.tem_outros_animais.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                {# Campo de seleção para 'tipo_outros_animais' (pode usar bootstrap_field) #}
+                {% bootstrap_field form.tipo_outros_animais %}
+                
+                {# MultipleChoiceField para 'temperamento_outros_animais' #}
+                <div class="form-group">
+                    <label>{{ form.temperamento_outros_animais.label }}</label>
+                    {% for checkbox in form.temperamento_outros_animais %}
+                        <div class="form-check">
+                            {{ checkbox.tag }}
+                            <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                        </div>
+                    {% endfor %}
+                    {% if form.temperamento_outros_animais.errors %}<div class="text-danger d-block">{{ form.temperamento_outros_animais.errors }}</div>{% endif %}
+                    {% if form.temperamento_outros_animais.help_text %}<small class="form-text text-muted">{{ form.temperamento_outros_animais.help_text }}</small>{% endif %}
+                </div>
+                
+                {# Checkbox simples (BooleanField) para 'disposicao_necessidades_especiais' #}
+                <div class="form-group">
+                    <div class="form-check">
+                        {{ form.disposicao_necessidades_especiais.tag }}
+                        <label class="form-check-label" for="{{ form.disposicao_necessidades_especiais.id_for_label }}">
+                            {{ form.disposicao_necessidades_especiais.label }}
+                        </label>
+                    </div>
+                    {% if form.disposicao_necessidades_especiais.help_text %}
+                        <small class="form-text text-muted">{{ form.disposicao_necessidades_especiais.help_text }}</small>
+                    {% endif %}
+                    {% if form.disposicao_necessidades_especiais.errors %}
+                        {% for error in form.disposicao_necessidades_especiais.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                {# Erros de formulário não relacionados a campos específicos #}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
                 <button type="submit" class="save-button">Salvar Alterações</button>
             </form> 
             <br>
             {# O link "Voltar ao Menu Principal" já está presente e funcional #}
-            <a href="{% url 'telaprincipal' %}">Voltar ao Menu Principal</a>
+            <p><a href="{% url 'telaprincipal' %}">Voltar ao Menu Principal</a></p>
         </div>
     </div>
+    {% bootstrap_jquery %} {# Inclui jQuery necessário para Bootstrap #}
+    {% bootstrap_javascript %} {# Inclui o JavaScript do Bootstrap #}
 </body>
 </html>
